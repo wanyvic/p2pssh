@@ -185,7 +185,7 @@ func writeData(rw *bufio.Writer) {
 		logrus.Debug(string(sendData))
 		sendData = append(sendData, '\n')
 		rw.Write(sendData)
-		// rw.Flush()
+		rw.Flush()
 	}
 
 }
