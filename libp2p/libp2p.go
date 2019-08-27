@@ -183,7 +183,7 @@ func writeData(rw *bufio.Writer) {
 		if err != nil {
 			panic(err)
 		}
-
+		fmt.Println("wrint")
 		rw.WriteString(fmt.Sprintf("%s\n", sendData))
 		rw.Flush()
 	}

@@ -3,6 +3,8 @@ package p2p
 import (
 	"bufio"
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -11,12 +13,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (p *P2PSSH) Connect(pid peer.ID) (*bufio.Reader, *bufio.Writer, error) {
+func (p *P2PSSH) Connect(pid peer.ID, reader *bufio.Reader, writer *bufio.Writer) error {
 	logrus.Debug("p2p connect")
 	addrInfo, err := p.dht.FindPeer(context.Background(), pid)
 	if err != nil {
 		logrus.Error(pid)
-		return nil, nil, err
+		return err
 	}
 	if err := p.host.Connect(context.Background(), addrInfo); err != nil {
 		logrus.Error("Connection failed:", err)
@@ -36,11 +38,24 @@ func (p *P2PSSH) Connect(pid peer.ID) (*bufio.Reader, *bufio.Writer, error) {
 
 	if err != nil {
 		logrus.Error("Connection failed:", err)
-		return nil, nil, err
+		return err
 	}
 	r := bufio.NewReader(stream)
 	w := bufio.NewWriter(stream)
-	go readData(r)
-	go writeData(w)
-	return r, w, nil
+
+	go swap(w, reader)
+	go swap(writer, r)
+	return nil
+}
+func swap(dst *bufio.Writer, src *bufio.Reader) {
+	var buf [1024]byte
+	for {
+		n, err := src.Read(buf[:])
+		if err != nil || err == io.EOF {
+			break
+		}
+		fmt.Printf("%s", string(buf[:n]))
+		dst.Write(buf[:n])
+		dst.Flush()
+	}
 }

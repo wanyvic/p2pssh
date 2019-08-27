@@ -67,15 +67,12 @@ func Handle(tcpConn *net.TCPConn) {
 	logrus.Debug(string(buf[:n]))
 	if auth, found := parse(string(buf[:n])); found {
 
-		r, w, err := libp2p.Connect(auth.NodeID)
+		err := libp2p.Connect(auth.NodeID, reader, writer)
 		if err != nil {
 			return
 		}
-		for {
-			io.Copy(w, reader)
-			io.Copy(writer, r)
-		}
 	}
+	logrus.Debug("exit")
 }
 
 func parse(str string) (auth api.UserAuth, found bool) {

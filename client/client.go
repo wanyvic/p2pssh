@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
@@ -59,43 +58,8 @@ func (c *client) handle() {
 	auth, _ := json.Marshal(c.userAuth)
 	b := []byte(fmt.Sprintf("--------P2PSSH--CONNECT--------\n%s\n", string(auth)))
 	c.conn.Write(b)
-	go readRaw(c.ctx, reader)
-	go writeRaw(c.ctx, writer)
-}
-func readRaw(ctx context.Context, reader *bufio.Reader) {
-	var buf [1024]byte
-	for {
-		select {
-		case <-time.After(time.Second):
-			break
-		case <-ctx.Done():
-			return
-		}
-		n, err := reader.Read(buf[:])
-		if err != nil || err == io.EOF {
-			ctx.Done()
-			break
-		}
-		fmt.Printf("%s", string(buf[:n]))
-	}
-}
-func writeRaw(ctx context.Context, writer *bufio.Writer) {
-	stdin := bufio.NewReader(os.Stdin)
-	for {
-		select {
-		case <-time.After(time.Second):
-			break
-		case <-ctx.Done():
-			logrus.Debug("stop")
-			return
-		}
+	go io.Copy(writer, os.Stdin)
+	go io.Copy(os.Stdout, reader)
 
-		strBytes, _, err := stdin.ReadLine()
-		if err != nil {
-			fmt.Println(err)
-		}
-		strBytes = append(strBytes, '\n')
-		writer.Write(strBytes)
-		writer.Flush()
-	}
+	logrus.Debug("exit")
 }
