@@ -168,9 +168,8 @@ func readData(rw *bufio.Reader) {
 		if str != "\n" {
 			// Green console colour: 	\x1b[32m
 			// Reset console colour: 	\x1b[0m
-			fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
+			fmt.Printf("\x1b[32m%s\x1b[0m> \n", str)
 		}
-
 	}
 }
 
@@ -183,7 +182,8 @@ func writeData(rw *bufio.Writer) {
 		if err != nil {
 			panic(err)
 		}
-		rw.WriteString(fmt.Sprintf("%s\n", sendData))
+		sendData = append(sendData, '\n')
+		rw.Write(sendData)
 		// rw.Flush()
 	}
 
