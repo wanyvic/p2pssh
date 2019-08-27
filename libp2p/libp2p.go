@@ -22,7 +22,7 @@ import (
 
 var (
 	bootstarp = []string{
-		"/ip4/119.3.66.159/tcp/9000/p2p/QmdQERFyHXZE4mBUuSrjbcuicRrmrQk4BB6uTAfiFWWjvq",
+		"/ip4/119.3.66.159/tcp/9000/p2p/QmdK9yXfXteQRrrTEUNAUDza4116vj4miTRmq7ofJN7vtv",
 		"/ip4/132.232.79.195/tcp/9000/p2p/QmZLdPPkXanNCaQYk7CUaQkPioYBnoanhHC4Z9ZvF7eNWt",
 	}
 )
@@ -76,6 +76,7 @@ func New() (p *P2PSSH, err error) {
 	discovery.Advertise(context.Background(), p.routingDiscovery, Community)
 	p.connectBootstarp()
 	go p.connectFromDHT()
+	p.NewSSHService()
 	return p, nil
 }
 func (p *P2PSSH) connectBootstarp() {
@@ -126,8 +127,8 @@ func (p *P2PSSH) connectFromDHT() {
 		break
 	}
 }
-func (p *P2PSSH) NewSSHService(h host.Host) {
-	h.SetStreamHandler(ID, handleStream)
+func (p *P2PSSH) NewSSHService() {
+	p.host.SetStreamHandler(ID, handleStream)
 }
 
 func handleStream(s network.Stream) {
