@@ -182,6 +182,7 @@ func writeData(rw *bufio.Writer) {
 		if err != nil {
 			panic(err)
 		}
+		logrus.Debug(string(send))
 		sendData = append(sendData, '\n')
 		rw.Write(sendData)
 		// rw.Flush()
