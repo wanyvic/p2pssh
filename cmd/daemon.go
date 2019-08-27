@@ -19,6 +19,8 @@ import (
 	"context"
 	"fmt"
 
+	p2p "github.com/wanyvic/p2pssh/libp2p"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wanyvic/p2pssh/service"
@@ -39,6 +41,8 @@ to quickly create a Cobra application.`,
 		if err := configureDaemonLogs(&Opt); err != nil {
 			logrus.Error(err)
 		}
+
+		p2p.GetLibp2p()
 		svi := service.New(context.Background(), service.DefaultConnect())
 		svi.ConnHandler = service.Handle
 		if err := svi.Start(); err != nil {
