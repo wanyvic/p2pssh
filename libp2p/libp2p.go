@@ -3,6 +3,7 @@ package p2p
 import (
 	"bufio"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"sync"
@@ -12,6 +13,7 @@ import (
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	crypto "github.com/libp2p/go-libp2p-crypto"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	host "github.com/libp2p/go-libp2p-host"
 	kaddht "github.com/libp2p/go-libp2p-kad-dht"
@@ -22,7 +24,7 @@ import (
 
 var (
 	bootstarp = []string{
-		"/ip4/119.3.66.159/tcp/9000/p2p/QmdK9yXfXteQRrrTEUNAUDza4116vj4miTRmq7ofJN7vtv",
+		"/ip4/119.3.66.159/tcp/9000/p2p/QmdQERFyHXZE4mBUuSrjbcuicRrmrQk4BB6uTAfiFWWjvq",
 		"/ip4/132.232.79.195/tcp/9000/p2p/QmZLdPPkXanNCaQYk7CUaQkPioYBnoanhHC4Z9ZvF7eNWt",
 	}
 )
@@ -40,7 +42,8 @@ type P2PSSH struct {
 }
 
 var (
-	Libp2p *P2PSSH
+	Libp2p     *P2PSSH
+	PrivateKey string
 )
 
 func GetLibp2p() *P2PSSH {
@@ -56,7 +59,19 @@ func GetLibp2p() *P2PSSH {
 }
 func New() (p *P2PSSH, err error) {
 	p = &P2PSSH{}
-	p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9000"), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
+	if PrivateKey != "" {
+		priv_bytes, err := hex.DecodeString(PrivateKey)
+		if err != nil {
+			return nil, err
+		}
+		priv, err := crypto.UnmarshalPrivateKey(priv_bytes)
+		if err != nil {
+			return nil, err
+		}
+		p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9000"), libp2p.Identity(priv), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
+	} else {
+		p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9000"), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
+	}
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

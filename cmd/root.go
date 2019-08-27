@@ -28,13 +28,14 @@ import (
 )
 
 type daemonOptions struct {
-	CfgFile  string
-	flags    *pflag.FlagSet
-	Debug    bool
-	Hosts    []string
-	LogLevel string
-	Relay    bool
-	Daemon   bool
+	CfgFile    string
+	flags      *pflag.FlagSet
+	Debug      bool
+	Hosts      []string
+	LogLevel   string
+	Relay      bool
+	Daemon     bool
+	PrivateKey string
 }
 
 var Opt daemonOptions

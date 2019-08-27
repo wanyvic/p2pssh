@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/sirupsen/logrus"
+	p2p "github.com/wanyvic/p2pssh/libp2p"
 )
 
 // configureDaemonLogs sets the logrus logging level and formatting
@@ -18,6 +19,7 @@ func configureDaemonLogs(Opt *daemonOptions) error {
 	} else {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
+	p2p.PrivateKey = Opt.PrivateKey
 	logrus.SetFormatter(&logrus.TextFormatter{
 		TimestampFormat: jsonmessage.RFC3339NanoFixed,
 		DisableColors:   false,
