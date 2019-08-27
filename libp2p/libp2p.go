@@ -19,7 +19,6 @@ import (
 	kaddht "github.com/libp2p/go-libp2p-kad-dht"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
-	"github.com/wanyvic/p2pssh/ssh"
 )
 
 var (
@@ -152,8 +151,9 @@ func handleStream(s network.Stream) {
 	// Create a buffer stream for non blocking read and write.
 	r := bufio.NewReader(s)
 	w := bufio.NewWriter(s)
-
-	ssh.Start(r, w)
+	go readData(r)
+	go writeData(w)
+	// ssh.Start(r, w)
 
 	// stream 's' will stay open until you close it (or the other side closes it).
 }
