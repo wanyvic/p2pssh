@@ -3,7 +3,6 @@ package p2p
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -54,7 +53,7 @@ func swap(dst *bufio.Writer, src *bufio.Reader) {
 		if err != nil || err == io.EOF {
 			break
 		}
-		fmt.Printf("%s", string(buf[:n]))
+		logrus.Debug(string(buf[:n]))
 		dst.Write(buf[:n])
 		dst.Flush()
 	}
