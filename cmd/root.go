@@ -22,21 +22,19 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/wanyvic/p2pssh_c/cmd/config"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
 type daemonOptions struct {
-	CfgFile      string
-	daemonConfig *config.Config
-	flags        *pflag.FlagSet
-	Debug        bool
-	Hosts        []string
-	LogLevel     string
-	Relay        bool
-	Daemon       bool
+	CfgFile  string
+	flags    *pflag.FlagSet
+	Debug    bool
+	Hosts    []string
+	LogLevel string
+	Relay    bool
+	Daemon   bool
 }
 
 var Opt daemonOptions
