@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
@@ -57,6 +58,8 @@ func (c *client) handle() {
 	writer := bufio.NewWriter(c.conn)
 	auth, _ := json.Marshal(c.userAuth)
 	b := []byte(fmt.Sprintf("--------P2PSSH--CONNECT--------\n%s\n", string(auth)))
+	c.conn.Write(b)
+	time.Sleep(time.Second)
 	c.conn.Write(b)
 	go io.Copy(writer, os.Stdin)
 	go io.Copy(os.Stdout, reader)
