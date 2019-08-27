@@ -1,9 +1,10 @@
-package dsshd
+package p2p
 
 import (
 	"bufio"
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -11,14 +12,12 @@ import (
 	circuit "github.com/libp2p/go-libp2p-circuit"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
-	crypto "github.com/libp2p/go-libp2p-crypto"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	host "github.com/libp2p/go-libp2p-host"
 	kaddht "github.com/libp2p/go-libp2p-kad-dht"
-	swarm "github.com/libp2p/go-libp2p-swarm"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/wanyvic/prizes_ssh/ssh"
+	"github.com/sirupsen/logrus"
+	"github.com/wanyvic/p2pssh/ssh"
 )
 
 var (
@@ -30,7 +29,7 @@ var (
 
 const (
 	MAX_CONNECTION = 8
-	Community      = "prizes_ssh"
+	Community      = "p2pssh"
 	ID             = "/ssh/1.0.0"
 )
 
@@ -40,15 +39,29 @@ type P2PSSH struct {
 	dht              *kaddht.IpfsDHT
 }
 
-func New(priva crypto.PrivKey) (_ *P2PSSH, err error) {
-	p := P2PSSH{}
+var (
+	Libp2p *P2PSSH
+)
 
-	p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9001"), libp2p.Identity(priva), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
+func GetLibp2p() *P2PSSH {
+	if Libp2p == nil {
+		Libp2p, err := New()
+		if err != nil {
+			logrus.Error(err)
+			Libp2p = nil
+		}
+		return Libp2p
+	}
+	return Libp2p
+}
+func New() (p *P2PSSH, err error) {
+	p = &P2PSSH{}
+	p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9000"), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println(p.host.ID(), p.host.Addrs())
+	logrus.Info(p.host.ID(), p.host.Addrs())
 
 	p.dht, err = kaddht.New(context.Background(), p.host)
 	if err != nil {
@@ -63,7 +76,7 @@ func New(priva crypto.PrivKey) (_ *P2PSSH, err error) {
 	discovery.Advertise(context.Background(), p.routingDiscovery, Community)
 	p.connectBootstarp()
 	go p.connectFromDHT()
-	return &p, nil
+	return p, nil
 }
 func (p *P2PSSH) connectBootstarp() {
 	var wg sync.WaitGroup
@@ -78,15 +91,15 @@ func (p *P2PSSH) connectBootstarp() {
 		go func() {
 			defer wg.Done()
 			if err := p.host.Connect(context.Background(), *peerinfo); err != nil {
-				fmt.Println(err)
+				logrus.Error(err)
 			} else {
-				fmt.Println("Connection established with bootstrap node:", *peerinfo)
+				logrus.Debug("Connection established with bootstrap node:", *peerinfo)
 			}
 		}()
 	}
 	wg.Wait()
 	if len(p.host.Network().Peers()) < 1 {
-		fmt.Println("no connection")
+		logrus.Warning("no connection")
 	}
 }
 func (p *P2PSSH) connectFromDHT() {
@@ -113,39 +126,6 @@ func (p *P2PSSH) connectFromDHT() {
 		break
 	}
 }
-func (p *P2PSSH) Connect(pid peer.ID) error {
-	fmt.Println("connect")
-	addrInfo, err := p.dht.FindPeer(context.Background(), pid)
-	if err != nil {
-		fmt.Println(pid)
-		return err
-	}
-	if err := p.host.Connect(context.Background(), addrInfo); err != nil {
-		fmt.Println("Connection failed:", err)
-		p.host.Network().(*swarm.Swarm).Backoff().Clear(addrInfo.ID)
-		relayaddr, _ := ma.NewMultiaddr("/p2p-circuit/ipfs/" + addrInfo.ID.Pretty())
-		h3relayInfo := peer.AddrInfo{
-			ID:    addrInfo.ID,
-			Addrs: []ma.Multiaddr{relayaddr},
-		}
-		if err := p.host.Connect(context.Background(), h3relayInfo); err != nil {
-			fmt.Println(h3relayInfo, err)
-		}
-	}
-	fmt.Println("Connection established peer:", addrInfo)
-
-	stream, err := p.host.NewStream(context.Background(), addrInfo.ID, protocol.ID(ID))
-
-	if err != nil {
-		fmt.Println("Connection failed:", err)
-		return err
-	}
-	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-	go writeData(rw)
-	go readData(rw)
-	return nil
-}
-
 func (p *P2PSSH) NewSSHService(h host.Host) {
 	h.SetStreamHandler(ID, handleStream)
 }
@@ -154,41 +134,42 @@ func handleStream(s network.Stream) {
 	fmt.Println("Got a new stream!")
 
 	// Create a buffer stream for non blocking read and write.
-	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+	r := bufio.NewReader(s)
+	w := bufio.NewWriter(s)
 
-	ssh.Start(rw)
+	ssh.Start(r, w)
 
 	// stream 's' will stay open until you close it (or the other side closes it).
 }
-func readData(rw *bufio.ReadWriter) {
-	// for {
+func readData(rw *bufio.Reader) {
+	for {
 
-	// 	str, _ := rw.ReadString('\n')
+		str, _ := rw.ReadString('\n')
 
-	// 	if str == "" {
-	// 		return
-	// 	}
-	// 	if str != "\n" {
-	// 		// Green console colour: 	\x1b[32m
-	// 		// Reset console colour: 	\x1b[0m
-	// 		fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
-	// 	}
+		if str == "" {
+			return
+		}
+		if str != "\n" {
+			// Green console colour: 	\x1b[32m
+			// Reset console colour: 	\x1b[0m
+			fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
+		}
 
-	// }
+	}
 }
 
-func writeData(rw *bufio.ReadWriter) {
-	// stdReader := bufio.NewReader(os.Stdin)
+func writeData(rw *bufio.Writer) {
+	stdReader := bufio.NewReader(os.Stdin)
 
-	// for {
-	// 	sendData, err := stdReader.Read()
+	for {
+		sendData, _, err := stdReader.ReadLine()
 
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
+		if err != nil {
+			panic(err)
+		}
 
-	// 	rw.WriteString(fmt.Sprintf("%s\n", sendData))
-	// 	rw.Flush()
-	// }
+		rw.WriteString(fmt.Sprintf("%s\n", sendData))
+		rw.Flush()
+	}
 
 }

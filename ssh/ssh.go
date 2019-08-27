@@ -48,7 +48,7 @@ func connect(user, password, host string, port int) (*ssh.Session, error) {
 
 	return session, nil
 }
-func Start(rw *bufio.ReadWriter) {
+func Start(r *bufio.Reader, w *bufio.Writer) {
 	session, err := connect("wany", "0815", "127.0.0.1", 22)
 	if err != nil {
 		log.Fatal(err)
@@ -63,9 +63,9 @@ func Start(rw *bufio.ReadWriter) {
 	defer terminal.Restore(fd, oldState)
 
 	// excute command
-	session.Stdout = rw.Writer
-	session.Stderr = rw.Writer
-	session.Stdin = rw.Reader
+	session.Stdout = w
+	session.Stderr = w
+	session.Stdin = r
 
 	termWidth, termHeight, err := terminal.GetSize(fd)
 	if err != nil {
