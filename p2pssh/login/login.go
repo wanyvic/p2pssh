@@ -57,16 +57,3 @@ func parsePrivateKey(keyPath string) (private []byte, _ error) {
 
 	return privateBytes, nil
 }
-
-// func parsePrivateKey(keyPath string) (private ssh.Signer, _ error) {
-// 	privateBytes, err := ioutil.ReadFile(keyPath)
-// 	if err != nil {
-// 		return private, err
-// 	}
-// 	logrus.Debug("SSHPrivateKey: ", string(privateBytes))
-// 	private, err = ssh.ParsePrivateKey(privateBytes)
-// 	if err != nil {
-// 		return private, err
-// 	}
-// 	return private, nil
-// }

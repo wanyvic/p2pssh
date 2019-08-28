@@ -1,13 +1,13 @@
 package client
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -54,19 +54,26 @@ func (c *client) Close() {
 }
 func (c *client) handle() {
 
-	reader := bufio.NewReader(c.conn)
-	writer := bufio.NewWriter(c.conn)
+	r := io.Reader(c.conn)
+	w := io.Writer(c.conn)
 	auth, err := json.Marshal(c.config)
 	if err != nil {
 		logrus.Error(err)
 	}
 	b := []byte(fmt.Sprintf("--------P2PSSH--CONNECT--------\n%s\n", string(auth)))
-	c.conn.Write(b)
 	time.Sleep(time.Second)
 	c.conn.Write(b)
-	go io.Copy(writer, os.Stdin)
-	go io.Copy(os.Stdout, reader)
+	var buf [1024]byte
 
-	select {}
-	logrus.Debug("exit")
+	n, err := r.Read(buf[:])
+	if err != nil || err == io.EOF {
+		logrus.Error(err)
+	}
+	logrus.Debug(string(buf[:n]))
+	if strings.Contains(string(buf[:n]), "--------P2PSSH--CONNECTED--------") {
+		c.conn.Write(b)
+		go io.Copy(w, os.Stdin)
+		io.Copy(os.Stdout, r)
+	}
+
 }

@@ -3,7 +3,6 @@ package ssh
 import (
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"os"
 	"time"
@@ -54,16 +53,16 @@ func connect(userName string, password string, privateBytes []byte, host string,
 
 	return session, nil
 }
-func Start(r io.Reader, w io.Writer, config api.ClientConfig) {
+func Start(r io.Reader, w io.Writer, config api.ClientConfig) error {
 	session, err := connect(config.UserName, config.Password, config.PrivateKey, "127.0.0.1", 22)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer session.Close()
 	fd := int(os.Stdin.Fd())
 	oldState, err := terminal.MakeRaw(fd)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer terminal.Restore(fd, oldState)
 
@@ -74,7 +73,7 @@ func Start(r io.Reader, w io.Writer, config api.ClientConfig) {
 
 	termWidth, termHeight, err := terminal.GetSize(fd)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Set up terminal modes
@@ -86,8 +85,9 @@ func Start(r io.Reader, w io.Writer, config api.ClientConfig) {
 
 	// Request pseudo terminal
 	if err := session.RequestPty("xterm-256color", termHeight, termWidth, modes); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	session.Run("bash")
+	return nil
 }

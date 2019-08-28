@@ -1,7 +1,6 @@
 package p2p
 
 import (
-	"bufio"
 	"context"
 	"io"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (p *P2PSSH) Connect(pid peer.ID, reader *bufio.Reader, writer *bufio.Writer) error {
+func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error {
 	logrus.Debug("p2p connect")
 	addrInfo, err := p.dht.FindPeer(context.Background(), pid)
 	if err != nil {
@@ -39,22 +38,10 @@ func (p *P2PSSH) Connect(pid peer.ID, reader *bufio.Reader, writer *bufio.Writer
 		logrus.Error("Connection failed:", err)
 		return err
 	}
-	r := bufio.NewReader(stream)
-	w := bufio.NewWriter(stream)
-
-	go swap(w, reader)
-	go swap(writer, r)
+	r := io.Reader(stream)
+	w := io.Writer(stream)
+	go io.Copy(w, reader)
+	io.Copy(writer, r)
+	logrus.Debug("connection close")
 	return nil
-}
-func swap(dst *bufio.Writer, src *bufio.Reader) {
-	var buf [1024]byte
-	for {
-		n, err := src.Read(buf[:])
-		if err != nil || err == io.EOF {
-			break
-		}
-		logrus.Debug(string(buf[:n]))
-		dst.Write(buf[:n])
-		dst.Flush()
-	}
 }

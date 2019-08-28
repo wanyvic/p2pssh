@@ -75,18 +75,17 @@ func New() (p *P2PSSH, err error) {
 		p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9000"), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
 	}
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	logrus.Info(p.host.ID(), p.host.Addrs())
 
 	p.dht, err = kaddht.New(context.Background(), p.host)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	err = p.dht.Bootstrap(context.Background())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	p.routingDiscovery = discovery.NewRoutingDiscovery(p.dht)
@@ -162,7 +161,9 @@ func handleStream(s network.Stream) {
 	}
 	logrus.Debug(string(buf[:n]))
 	if auth, found := parse(string(buf[:n])); found {
-		ssh.Start(r, w, auth)
+		if err := ssh.Start(r, w, auth); err != nil {
+			w.Write([]byte(err.Error()))
+		}
 	}
 	logrus.Debug("stream close")
 	s.Close()

@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"net"
 
 	"github.com/sirupsen/logrus"
@@ -48,7 +47,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("login called")
+		logrus.Debug("login called")
 		if err := configureDaemonLogs(&Opt); err != nil {
 			logrus.Error(err)
 		}
@@ -56,7 +55,7 @@ to quickly create a Cobra application.`,
 			logrus.Error("No connection")
 			return
 		}
-		fmt.Println(DaemonAddress, SSHPrivateKey)
+		logrus.Debug(DaemonAddress, SSHPrivateKey)
 		config := &api.ClientConfig{}
 		var err error
 		if config, err = configureClientConfig(args[0]); err != nil {

@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	p2p "github.com/wanyvic/p2pssh/libp2p"
 
@@ -37,7 +36,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("daemon called")
+		logrus.Debug("daemon called")
 		if err := configureDaemonLogs(&Opt); err != nil {
 			logrus.Error(err)
 		}

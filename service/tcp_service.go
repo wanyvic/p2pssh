@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -55,8 +54,9 @@ func (s *p2pService) SetHandler(handle ConnHandler) {
 }
 
 func Handle(tcpConn *net.TCPConn) {
-	reader := bufio.NewReader(tcpConn)
-	writer := bufio.NewWriter(tcpConn)
+	defer tcpConn.Close()
+	reader := io.Reader(tcpConn)
+	writer := io.Writer(tcpConn)
 	var buf [1024]byte
 	libp2p := p2p.GetLibp2p()
 
@@ -65,6 +65,7 @@ func Handle(tcpConn *net.TCPConn) {
 		logrus.Error(err)
 	}
 	logrus.Debug(string(buf[:n]))
+	writer.Write([]byte("--------P2PSSH--CONNECTED--------"))
 	if auth, found := parse(string(buf[:n])); found {
 
 		err := libp2p.Connect(auth.NodeID, reader, writer)
@@ -72,7 +73,7 @@ func Handle(tcpConn *net.TCPConn) {
 			return
 		}
 	}
-	logrus.Debug("exit")
+	logrus.Debug("Handle Close")
 }
 
 func parse(str string) (auth api.ClientConfig, found bool) {
