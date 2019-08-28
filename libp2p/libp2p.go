@@ -1,13 +1,11 @@
 package p2p
 
 import (
-	"bufio"
 	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -166,40 +164,10 @@ func handleStream(s network.Stream) {
 	if auth, found := parse(string(buf[:n])); found {
 		ssh.Start(r, w, auth)
 	}
+	logrus.Debug("stream close")
+	s.Close()
 
 	// stream 's' will stay open until you close it (or the other side closes it).
-}
-func readData(rw *bufio.Reader) {
-	for {
-
-		str, _ := rw.ReadString('\n')
-
-		if str == "" {
-			return
-		}
-		if str != "\n" {
-			// Green console colour: 	\x1b[32m
-			// Reset console colour: 	\x1b[0m
-			fmt.Printf("\x1b[32m%s\x1b[0m> \n", str)
-		}
-	}
-}
-
-func writeData(rw *bufio.Writer) {
-	stdReader := bufio.NewReader(os.Stdin)
-
-	for {
-		sendData, _, err := stdReader.ReadLine()
-
-		if err != nil {
-			panic(err)
-		}
-		logrus.Debug(string(sendData))
-		sendData = append(sendData, '\n')
-		rw.Write(sendData)
-		rw.Flush()
-	}
-
 }
 func parse(str string) (auth api.UserAuth, found bool) {
 	if strings.Contains(str, "--------P2PSSH--CONNECT--------") {
