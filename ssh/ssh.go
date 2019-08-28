@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/wanyvic/p2pssh/api"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -48,8 +49,8 @@ func connect(user, password, host string, port int) (*ssh.Session, error) {
 
 	return session, nil
 }
-func Start(r *bufio.Reader, w *bufio.Writer) {
-	session, err := connect("wany", "0815", "127.0.0.1", 22)
+func Start(r *bufio.Reader, w *bufio.Writer, auth api.UserAuth) {
+	session, err := connect(auth.User, auth.Password, "127.0.0.1", 22)
 	if err != nil {
 		log.Fatal(err)
 	}

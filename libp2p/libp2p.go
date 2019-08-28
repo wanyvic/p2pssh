@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +22,8 @@ import (
 	kaddht "github.com/libp2p/go-libp2p-kad-dht"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
+	"github.com/wanyvic/p2pssh/api"
+	"github.com/wanyvic/p2pssh/ssh"
 )
 
 var (
@@ -151,8 +156,19 @@ func handleStream(s network.Stream) {
 	// Create a buffer stream for non blocking read and write.
 	r := bufio.NewReader(s)
 	w := bufio.NewWriter(s)
-	go readData(r)
-	go writeData(w)
+	var buf [1024]byte
+
+	n, err := r.Read(buf[:])
+	if err != nil || err == io.EOF {
+		logrus.Error(err)
+	}
+	logrus.Debug(string(buf[:n]))
+	if auth, found := parse(string(buf[:n])); found {
+		ssh.Start(r, w,auth)
+	}
+
+	// go readData(r)
+	// go writeData(w)
 	// ssh.Start(r, w)
 
 	// stream 's' will stay open until you close it (or the other side closes it).
@@ -188,4 +204,16 @@ func writeData(rw *bufio.Writer) {
 		rw.Flush()
 	}
 
+}
+func parse(str string) (auth api.UserAuth, found bool) {
+	if strings.Contains(str, "--------P2PSSH--CONNECT--------") {
+		logrus.Debug("finding peer id")
+		svar := strings.Split(str, "\n")
+		if len(svar) < 3 {
+			logrus.Error("no auth")
+			return auth, false
+		}
+		json.Unmarshal([]byte(svar[1]), &auth)
+	}
+	return auth, true
 }
