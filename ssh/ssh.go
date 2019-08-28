@@ -24,12 +24,13 @@ func connect(userName string, password string, privateBytes []byte, host string,
 	// get auth method
 	auth = make([]ssh.AuthMethod, 0)
 	auth = append(auth, ssh.Password(password))
-	Signer, err := ssh.ParsePrivateKey(privateBytes)
-	if err != nil {
-		return nil, err
+	if len(privateBytes) > 0 {
+		Signer, err := ssh.ParsePrivateKey(privateBytes)
+		if err != nil {
+			return nil, err
+		}
+		auth = append(auth, ssh.PublicKeys(Signer))
 	}
-
-	auth = append(auth, ssh.PublicKeys(Signer))
 	clientConfig = &ssh.ClientConfig{
 		User:    userName,
 		Auth:    auth,
