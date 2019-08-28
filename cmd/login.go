@@ -46,6 +46,7 @@ to quickly create a Cobra application.`,
 				fmt.Println(err)
 				return
 			}
+			userAuth.Password = "lrh19950815"
 			logrus.Debug(userAuth)
 			c := client.New(context.Background(), client.DefaultConnect(), userAuth)
 			if err = c.Connect(); err != nil {

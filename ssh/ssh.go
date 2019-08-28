@@ -1,8 +1,8 @@
 package ssh
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -49,7 +49,7 @@ func connect(user, password, host string, port int) (*ssh.Session, error) {
 
 	return session, nil
 }
-func Start(r *bufio.Reader, w *bufio.Writer, auth api.UserAuth) {
+func Start(r io.Reader, w io.Writer, auth api.UserAuth) {
 	session, err := connect(auth.User, auth.Password, "127.0.0.1", 22)
 	if err != nil {
 		log.Fatal(err)

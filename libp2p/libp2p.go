@@ -154,8 +154,8 @@ func handleStream(s network.Stream) {
 	fmt.Println("Got a new stream!")
 
 	// Create a buffer stream for non blocking read and write.
-	r := bufio.NewReader(s)
-	w := bufio.NewWriter(s)
+	r := io.Reader(s)
+	w := io.Writer(s)
 	var buf [1024]byte
 
 	n, err := r.Read(buf[:])
@@ -164,12 +164,8 @@ func handleStream(s network.Stream) {
 	}
 	logrus.Debug(string(buf[:n]))
 	if auth, found := parse(string(buf[:n])); found {
-		ssh.Start(r, w,auth)
+		ssh.Start(r, w, auth)
 	}
-
-	// go readData(r)
-	// go writeData(w)
-	// ssh.Start(r, w)
 
 	// stream 's' will stay open until you close it (or the other side closes it).
 }
