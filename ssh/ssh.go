@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func connect(user, password, host string, port int) (*ssh.Session, error) {
+func connect(config api.ClientConfig, host string, port int) (*ssh.Session, error) {
 	var (
 		auth         []ssh.AuthMethod
 		addr         string
@@ -23,11 +23,10 @@ func connect(user, password, host string, port int) (*ssh.Session, error) {
 		err          error
 	)
 	// get auth method
-	auth = make([]ssh.AuthMethod, 0)
-	auth = append(auth, ssh.Password(password))
+	auth = config.Auth
 
 	clientConfig = &ssh.ClientConfig{
-		User:    user,
+		User:    config.UserName,
 		Auth:    auth,
 		Timeout: 30 * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
@@ -49,13 +48,12 @@ func connect(user, password, host string, port int) (*ssh.Session, error) {
 
 	return session, nil
 }
-func Start(r io.Reader, w io.Writer, auth api.UserAuth) {
-	session, err := connect(auth.User, auth.Password, "127.0.0.1", 22)
+func Start(r io.Reader, w io.Writer, config api.ClientConfig) {
+	session, err := connect(config, "127.0.0.1", 22)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer session.Close()
-
 	fd := int(os.Stdin.Fd())
 	oldState, err := terminal.MakeRaw(fd)
 	if err != nil {

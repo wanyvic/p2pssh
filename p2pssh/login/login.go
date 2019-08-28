@@ -2,33 +2,63 @@ package login
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"strings"
 
+	"github.com/howeyc/gopass"
 	peer "github.com/libp2p/go-libp2p-peer"
+	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
+	"golang.org/x/crypto/ssh"
 )
 
-// func Connect(auth *api.UserAuth) {
-// 	client.New(context.BackGround(), auth)
-// }
-func ParseAuth(str string) (auth api.UserAuth, err error) {
+func ParseClientConfig(str string, keyPath string) (config api.ClientConfig, err error) {
 	if str == "" {
-		return auth, errors.New("no args")
+		return config, errors.New("no args")
 	}
-	s := strings.Split(str, "@")
-	if len(s) == 2 {
-		auth.User = s[0]
-		auth.NodeID, err = peer.IDB58Decode(s[1])
-		if err != nil {
-			return auth, err
-		}
-	} else if len(s) == 1 {
-		auth.NodeID, err = peer.IDB58Decode(s[1])
-		if err != nil {
-			return auth, err
-		}
+	nodeID := ""
+	split := strings.Split(str, "@")
+	if len(split) == 2 {
+		config.UserName = split[0]
+		nodeID = split[1]
+	} else if len(split) == 1 {
+		nodeID = split[0]
 	} else {
-		return auth, errors.New("args errors")
+		return config, errors.New("args errors")
 	}
-	return auth, nil
+	config.NodeID, err = peer.IDB58Decode(nodeID)
+	if err != nil {
+		return config, err
+	}
+	if keyPath == "" {
+		fmt.Printf("Password: ")
+		pass, err := gopass.GetPasswd()
+		if err != nil {
+			return config, err
+		}
+		logrus.Debug("Password: ", string(pass))
+		config.Auth = append(config.Auth,
+			ssh.Password(string(pass)))
+	} else {
+		Signer, err := parsePrivateKey(keyPath)
+		if err != nil {
+			return config, err
+		}
+		config.Auth = append(config.Auth,
+			ssh.PublicKeys(Signer))
+	}
+	return config, nil
+}
+func parsePrivateKey(keyPath string) (private ssh.Signer, _ error) {
+	privateBytes, err := ioutil.ReadFile(keyPath)
+	if err != nil {
+		return private, err
+	}
+	logrus.Debug("SSHPrivateKey: ", string(privateBytes))
+	private, err = ssh.ParsePrivateKey(privateBytes)
+	if err != nil {
+		return private, err
+	}
+	return private, nil
 }

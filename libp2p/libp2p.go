@@ -169,7 +169,7 @@ func handleStream(s network.Stream) {
 
 	// stream 's' will stay open until you close it (or the other side closes it).
 }
-func parse(str string) (auth api.UserAuth, found bool) {
+func parse(str string) (auth api.ClientConfig, found bool) {
 	if strings.Contains(str, "--------P2PSSH--CONNECT--------") {
 		logrus.Debug("finding peer id")
 		svar := strings.Split(str, "\n")

@@ -26,21 +26,21 @@ var (
 )
 
 type client struct {
-	Addr     *net.TCPAddr
-	conn     *net.TCPConn
-	userAuth api.UserAuth
-	ctx      context.Context
+	Addr   *net.TCPAddr
+	conn   *net.TCPConn
+	config api.ClientConfig
+	ctx    context.Context
 }
 
-func New(ctx context.Context, tcpAddr *net.TCPAddr, userAuth api.UserAuth) (c client) {
-	logrus.Debug("New")
+func New(ctx context.Context, tcpAddr *net.TCPAddr, config api.ClientConfig) (c client) {
+	logrus.Debug("Create New Client")
 	c.Addr = tcpAddr
-	c.userAuth = userAuth
+	c.config = config
 	c.ctx = ctx
 	return c
 }
 func (c *client) Connect() error {
-	logrus.Debug("Connect")
+	logrus.Debug("Client Connectting ...")
 	conn, err := net.DialTCP("tcp", nil, c.Addr)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (c *client) handle() {
 
 	reader := bufio.NewReader(c.conn)
 	writer := bufio.NewWriter(c.conn)
-	auth, _ := json.Marshal(c.userAuth)
+	auth, _ := json.Marshal(c.config)
 	b := []byte(fmt.Sprintf("--------P2PSSH--CONNECT--------\n%s\n", string(auth)))
 	c.conn.Write(b)
 	time.Sleep(time.Second)
