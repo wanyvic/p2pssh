@@ -83,7 +83,10 @@ func parse(str string) (auth api.ClientConfig, found bool) {
 			logrus.Error("no auth")
 			return auth, false
 		}
-		json.Unmarshal([]byte(svar[1]), &auth)
+		err := json.Unmarshal([]byte(svar[1]), &auth)
+		if err != nil {
+			logrus.Error(err)
+		}
 	}
 	return auth, true
 }

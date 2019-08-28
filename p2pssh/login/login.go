@@ -10,7 +10,6 @@ import (
 	peer "github.com/libp2p/go-libp2p-peer"
 	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
-	"golang.org/x/crypto/ssh"
 )
 
 func ParseClientConfig(str string, keyPath string) (config api.ClientConfig, err error) {
@@ -38,27 +37,36 @@ func ParseClientConfig(str string, keyPath string) (config api.ClientConfig, err
 			return config, err
 		}
 		logrus.Debug("Password: ", string(pass))
-		config.Auth = append(config.Auth,
-			ssh.Password(string(pass)))
+		config.Password = string(pass)
 	} else {
-		Signer, err := parsePrivateKey(keyPath)
+		privateBytes, err := parsePrivateKey(keyPath)
 		if err != nil {
 			return config, err
 		}
-		config.Auth = append(config.Auth,
-			ssh.PublicKeys(Signer))
+		config.PrivateKey = privateBytes
 	}
 	return config, nil
 }
-func parsePrivateKey(keyPath string) (private ssh.Signer, _ error) {
+
+func parsePrivateKey(keyPath string) (private []byte, _ error) {
 	privateBytes, err := ioutil.ReadFile(keyPath)
 	if err != nil {
 		return private, err
 	}
 	logrus.Debug("SSHPrivateKey: ", string(privateBytes))
-	private, err = ssh.ParsePrivateKey(privateBytes)
-	if err != nil {
-		return private, err
-	}
-	return private, nil
+
+	return privateBytes, nil
 }
+
+// func parsePrivateKey(keyPath string) (private ssh.Signer, _ error) {
+// 	privateBytes, err := ioutil.ReadFile(keyPath)
+// 	if err != nil {
+// 		return private, err
+// 	}
+// 	logrus.Debug("SSHPrivateKey: ", string(privateBytes))
+// 	private, err = ssh.ParsePrivateKey(privateBytes)
+// 	if err != nil {
+// 		return private, err
+// 	}
+// 	return private, nil
+// }

@@ -56,7 +56,10 @@ func (c *client) handle() {
 
 	reader := bufio.NewReader(c.conn)
 	writer := bufio.NewWriter(c.conn)
-	auth, _ := json.Marshal(c.config)
+	auth, err := json.Marshal(c.config)
+	if err != nil {
+		logrus.Error(err)
+	}
 	b := []byte(fmt.Sprintf("--------P2PSSH--CONNECT--------\n%s\n", string(auth)))
 	c.conn.Write(b)
 	time.Sleep(time.Second)
@@ -64,5 +67,6 @@ func (c *client) handle() {
 	go io.Copy(writer, os.Stdin)
 	go io.Copy(os.Stdout, reader)
 
+	select {}
 	logrus.Debug("exit")
 }
