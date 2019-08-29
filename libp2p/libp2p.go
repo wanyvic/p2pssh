@@ -52,7 +52,8 @@ var (
 
 func GetLibp2p() *P2PSSH {
 	if Libp2p == nil {
-		Libp2p, err := New()
+		var err error
+		Libp2p, err = New()
 		if err != nil {
 			logrus.Error(err)
 			Libp2p = nil
@@ -61,21 +62,13 @@ func GetLibp2p() *P2PSSH {
 	}
 	return Libp2p
 }
-func New() (p *P2PSSH, err error) {
-	p = &P2PSSH{}
+func New() (_ *P2PSSH, err error) {
+	p := P2PSSH{}
 
 	transports := libp2p.ChainOptions(
 		libp2p.Transport(tcp.NewTCPTransport),
 		libp2p.Transport(quic.NewTransport),
 	)
-
-	// muxers := libp2p.ChainOptions(
-	// 	libp2p.Muxer("/yamux/1.0.0", yamux.DefaultTransport),
-	// 	libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport),
-	// )
-
-	// security := libp2p.Security(secio.ID, secio.New)
-
 	listenAddrs := libp2p.ListenAddrStrings(
 		// "/ip4/0.0.0.0/tcp/9000",
 		"/ip4/0.0.0.0/udp/9000/quic",
@@ -110,10 +103,10 @@ func New() (p *P2PSSH, err error) {
 
 	p.routingDiscovery = discovery.NewRoutingDiscovery(p.dht)
 	discovery.Advertise(context.Background(), p.routingDiscovery, Community)
-	p.connectBootstarp()
+	go p.connectBootstarp()
 	go p.connectFromDHT()
 	p.NewSSHService()
-	return p, nil
+	return &p, nil
 }
 func (p *P2PSSH) connectBootstarp() {
 	var wg sync.WaitGroup
