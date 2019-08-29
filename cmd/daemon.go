@@ -25,6 +25,12 @@ import (
 	"github.com/wanyvic/p2pssh/service"
 )
 
+type daemonOptions struct {
+	PrivateKey string
+}
+
+var daemonOpt daemonOptions
+
 // daemonCmd represents the daemon command
 var daemonCmd = &cobra.Command{
 	Use:   "daemon",
@@ -36,14 +42,15 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		logrus.Debug("daemon called")
 		if err := configureDaemonLogs(&Opt); err != nil {
 			logrus.Error(err)
 		}
-
-		p2p.GetLibp2p()
+		p2p.PrivateKey = daemonOpt.PrivateKey
+		cli := p2p.GetLibp2p()
+		cli.NewSSHService()
+		cli.NewPingService()
 		svi := service.New(context.Background(), service.DefaultConnect())
-		svi.ConnHandler = service.Handle
+		svi.ConnHandler = service.SSHandle
 		if err := svi.Start(); err != nil {
 			logrus.Error(err)
 		}
@@ -57,7 +64,7 @@ func init() {
 	// rootCmd.PersistentFlags().Int16VarP(&Opt.CfgFile, "config", "", `config file (default is $HOME/.p2pssh.yaml)`)
 	// Here you will define your flags and configuration settings.
 
-	rootCmd.PersistentFlags().StringVarP(&Opt.PrivateKey, "Privkey", "", "", `login with private key`)
+	rootCmd.PersistentFlags().StringVarP(&daemonOpt.PrivateKey, "privkey", "", "", `login with private key`)
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// daemonCmd.PersistentFlags().String("foo", "", "A help for foo")

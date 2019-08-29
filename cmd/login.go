@@ -67,6 +67,7 @@ to quickly create a Cobra application.`,
 			return
 		} else {
 			cli := client.New(context.Background(), tcpAddr, *config)
+			cli.ConnHandler = client.SSHandle
 			if err := cli.Connect(); err != nil {
 				logrus.Error(err)
 				return

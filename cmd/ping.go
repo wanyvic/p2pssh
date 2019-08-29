@@ -16,9 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
+
 	peer "github.com/libp2p/go-libp2p-peer"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/wanyvic/p2pssh/api"
 	"github.com/wanyvic/p2pssh/client"
 )
 
@@ -41,20 +44,25 @@ to quickly create a Cobra application.`,
 			logrus.Error("No connection")
 			return
 		}
-		nodeID, err := peer.IDB58Decode(args[0])
+		NodeID, err := peer.IDB58Decode(args[0])
+		config := &api.ClientConfig{}
 		if err != nil {
 			logrus.Error(err)
 			return
-		}
-		if tcpAddr, err := parseConnection(DaemonAddress); err != nil {
-			logrus.Error(err)
-			return
 		} else {
-			err := client.Ping(tcpAddr, nodeID)
-			logrus.Error(err)
-			return
+			config.NodeID = NodeID
+			if tcpAddr, err := parseConnection(DaemonAddress); err != nil {
+				logrus.Error(err)
+				return
+			} else {
+				cli := client.New(context.Background(), tcpAddr, *config)
+				cli.ConnHandler = client.PingHandle
+				if err := cli.Connect(); err != nil {
+					logrus.Error(err)
+					return
+				}
+			}
 		}
-
 	},
 }
 

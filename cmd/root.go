@@ -27,18 +27,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-type daemonOptions struct {
-	CfgFile    string
-	flags      *pflag.FlagSet
-	Debug      bool
-	Hosts      []string
-	LogLevel   string
-	Relay      bool
-	Daemon     bool
-	PrivateKey string
+type rootOptions struct {
+	CfgFile  string
+	flags    *pflag.FlagSet
+	Debug    bool
+	Hosts    []string
+	LogLevel string
 }
 
-var Opt daemonOptions
+var Opt rootOptions
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

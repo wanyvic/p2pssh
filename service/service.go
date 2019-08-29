@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"net"
 )
 
@@ -21,7 +20,6 @@ type ConnHandler func(*net.TCPConn)
 type p2pService struct {
 	TCPAddr     *net.TCPAddr
 	ConnHandler ConnHandler
-	ctx         context.Context
 }
 
 type Service interface {
