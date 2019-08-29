@@ -50,7 +50,7 @@ to quickly create a Cobra application.`,
 		cli.NewSSHService()
 		cli.NewPingService()
 		svi := service.New(context.Background(), service.DefaultConnect())
-		svi.ConnHandler = service.SSHandle
+		svi.ConnHandler = service.Handle
 		if err := svi.Start(); err != nil {
 			logrus.Error(err)
 		}

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"strings"
@@ -10,18 +11,13 @@ import (
 	p2p "github.com/wanyvic/p2pssh/libp2p"
 )
 
-func PingHandle(tcpConn *net.TCPConn) {
+func PingHandle(tcpConn *net.TCPConn, header string) {
 	defer tcpConn.Close()
 	reader := io.Reader(tcpConn)
 	writer := io.Writer(tcpConn)
-	var buf [1024]byte
 	libp2p := p2p.GetLibp2p()
-	n, err := reader.Read(buf[:])
-	if err != nil || err == io.EOF {
-		logrus.Error(err)
-	}
-	logrus.Debug(string(buf[:n]))
-	if nodeID, found := getNodeID(string(buf[:n])); found {
+
+	if nodeID, found := getNodeID(header); found {
 		err := libp2p.Ping(nodeID, reader, writer)
 		if err != nil {
 			logrus.Error("Connect to ", nodeID, " failed")
@@ -32,12 +28,17 @@ func PingHandle(tcpConn *net.TCPConn) {
 }
 func getNodeID(str string) (nodeID peer.ID, found bool) {
 	var err error
+	fmt.Println("i")
 	if strings.Contains(str, p2p.P2PINGCONNECT) {
+		fmt.Println("in")
 		array := strings.Split(str, "\n")
 		if len(array) < 3 {
 			logrus.Error("no nodeID")
 			return nodeID, false
 		}
+		fmt.Println(array[0])
+		fmt.Println(array[1])
+		fmt.Println(array[2])
 		nodeID, err = peer.IDB58Decode(array[1])
 		if err != nil {
 			return nodeID, false

@@ -56,6 +56,7 @@ func (p *P2PSSH) connectFromBootstarp() {
 			}()
 		}
 		wg.Wait()
+		time.Sleep(time.Second * 3)
 	}
 }
 func (p *P2PSSH) connectFromDHT() {

@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -85,9 +86,9 @@ func (p *P2PSSH) Ping(pid peer.ID, reader io.Reader, writer io.Writer) error {
 			if res.Error != nil {
 				return nil
 			}
-			writer.Write([]byte("ping took: " + res.RTT.String()))
+			writer.Write([]byte(fmt.Sprintf("ping took: %s\n", res.RTT.String())))
 		case <-time.After(time.Second * 4):
-			writer.Write([]byte("failed to receive ping"))
+			writer.Write([]byte("failed to receive ping\n"))
 		}
 	}
 	logrus.Debug("connection close")
