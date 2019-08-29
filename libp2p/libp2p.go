@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
@@ -63,7 +64,7 @@ func New(privkey string) (_ *P2PSSH, err error) {
 	if err != nil {
 		return nil, err
 	}
-	logrus.Info(p.host.ID(), p.host.Addrs())
+	fmt.Printf("Your PeerID is :%s\nListen:%s\n", p.host.ID().String(), p.host.Addrs())
 
 	p.dht, err = kaddht.New(context.Background(), p.host)
 	if err != nil {
@@ -83,7 +84,7 @@ func New(privkey string) (_ *P2PSSH, err error) {
 
 func getPrivateKey(privkey string) (priv crypto.PrivKey, err error) {
 	if privkey == "" {
-		priv, _, err = crypto.GenerateEd25519Key(rand.Reader)
+		priv, _, err = crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, rand.Reader)
 	} else {
 		privBytes, err := hex.DecodeString(privkey)
 		if err == nil {

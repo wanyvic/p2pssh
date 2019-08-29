@@ -36,7 +36,7 @@ func (p *P2PSSH) getRandomFromBootstrap() int64 {
 func (p *P2PSSH) connectFromBootstarp() {
 	var wg sync.WaitGroup
 	for len(p.host.Network().Peers()) <= 0 {
-		logrus.Warning("no connection,connecting bootstrap now")
+		logrus.Debug("no connection,connecting bootstrap now")
 		for i := 0; i < BOOTSTRAP_CONNECTION; i++ {
 			index := p.getRandomFromBootstrap()
 			maddr, err := ma.NewMultiaddr(p.bootstrap[index])

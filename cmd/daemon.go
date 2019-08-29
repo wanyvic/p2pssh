@@ -64,7 +64,7 @@ func init() {
 	// rootCmd.PersistentFlags().Int16VarP(&Opt.CfgFile, "config", "", `config file (default is $HOME/.p2pssh.yaml)`)
 	// Here you will define your flags and configuration settings.
 
-	rootCmd.PersistentFlags().StringVarP(&daemonOpt.PrivateKey, "privkey", "", "", `login with private key`)
+	daemonCmd.PersistentFlags().StringVarP(&daemonOpt.PrivateKey, "privkey", "", "", `daemon with private key for libp2p`)
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// daemonCmd.PersistentFlags().String("foo", "", "A help for foo")
