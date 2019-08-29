@@ -44,5 +44,5 @@ func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
 		go io.Copy(w, os.Stdin)
 		io.Copy(os.Stdout, r)
 	}
-	logrus.Info("handle exit")
+	logrus.Debug("PingHandle exit")
 }

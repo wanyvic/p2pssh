@@ -75,7 +75,6 @@ func (p *P2PSSH) connectFromDHT() {
 			if pr.ID == p.host.ID() {
 				continue
 			}
-			logrus.Debug("Found peer:", pr)
 			if p.host.Network().Connectedness(pr.ID) != network.Connected {
 				logrus.Debug("Connecting to:", pr)
 				if err := p.host.Connect(context.Background(), pr); err != nil {

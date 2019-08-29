@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"strings"
@@ -24,21 +23,16 @@ func PingHandle(tcpConn *net.TCPConn, header string) {
 			return
 		}
 	}
-	logrus.Debug("SSHandle Close")
+	logrus.Debug("PingHandle Close")
 }
 func getNodeID(str string) (nodeID peer.ID, found bool) {
 	var err error
-	fmt.Println("i")
 	if strings.Contains(str, p2p.P2PINGCONNECT) {
-		fmt.Println("in")
 		array := strings.Split(str, "\n")
 		if len(array) < 3 {
 			logrus.Error("no nodeID")
 			return nodeID, false
 		}
-		fmt.Println(array[0])
-		fmt.Println(array[1])
-		fmt.Println(array[2])
 		nodeID, err = peer.IDB58Decode(array[1])
 		if err != nil {
 			return nodeID, false

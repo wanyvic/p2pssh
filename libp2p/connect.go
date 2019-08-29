@@ -45,7 +45,7 @@ func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error 
 	w := io.Writer(stream)
 	go io.Copy(w, reader)
 	io.Copy(writer, r)
-	logrus.Debug("connection close")
+	logrus.Debug("libp2p ssh close")
 	return nil
 }
 func (p *P2PSSH) Ping(pid peer.ID, reader io.Reader, writer io.Writer) error {
@@ -89,8 +89,10 @@ func (p *P2PSSH) Ping(pid peer.ID, reader io.Reader, writer io.Writer) error {
 			writer.Write([]byte(fmt.Sprintf("ping took: %s\n", res.RTT.String())))
 		case <-time.After(time.Second * 4):
 			writer.Write([]byte("failed to receive ping\n"))
+		case <-pctx.Done():
+			logrus.Debug("libp2p ping close")
+			return nil
 		}
+		time.Sleep(time.Second)
 	}
-	logrus.Debug("connection close")
-	return nil
 }

@@ -17,7 +17,7 @@ func PingHandle(conn *net.TCPConn, config api.ClientConfig) {
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
 		for _ = range signalChan {
-			conn.Write([]byte("exit\n"))
+			conn.Close()
 		}
 	}()
 	r := io.Reader(conn)
@@ -29,5 +29,5 @@ func PingHandle(conn *net.TCPConn, config api.ClientConfig) {
 	go io.Copy(w, os.Stdin)
 	io.Copy(os.Stdout, r)
 
-	logrus.Info("handle exit")
+	logrus.Debug("PingHandle exit")
 }
