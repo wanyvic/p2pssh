@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"time"
 
 	"github.com/wanyvic/p2pssh/api"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func connect(userName string, password string, privateBytes []byte, host string, port int) (*ssh.Session, error) {
@@ -60,22 +58,23 @@ func Start(r io.Reader, w io.Writer, config api.ClientConfig) error {
 		return err
 	}
 	defer session.Close()
-	fd := int(os.Stdin.Fd())
-	oldState, err := terminal.MakeRaw(fd)
-	if err != nil {
-		return err
-	}
-	defer terminal.Restore(fd, oldState)
+	// fd := int(os.Stdin.Fd())
+	// oldState, err := terminal.MakeRaw(fd)
+	// if err != nil {
+	// 	return err
+	// }
+	// defer terminal.Restore(fd, oldState)
 
 	// excute command
 	session.Stdout = w
 	session.Stderr = w
 	session.Stdin = r
 
-	termWidth, termHeight, err := terminal.GetSize(fd)
-	if err != nil {
-		return err
-	}
+	// termWidth, termHeight, err := terminal.GetSize(fd)
+	// fd.Close()
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Set up terminal modes
 	modes := ssh.TerminalModes{
@@ -85,7 +84,7 @@ func Start(r io.Reader, w io.Writer, config api.ClientConfig) error {
 	}
 
 	// Request pseudo terminal
-	if err := session.RequestPty("xterm-256color", termHeight, termWidth, modes); err != nil {
+	if err := session.RequestPty("xterm-256color", 80, 40, modes); err != nil {
 		return err
 	}
 
