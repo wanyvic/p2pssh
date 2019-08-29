@@ -56,7 +56,7 @@ func (p *P2PSSH) Ping(pid peer.ID, reader io.Reader, writer io.Writer) error {
 		return err
 	}
 	if err := p.host.Connect(context.Background(), addrInfo); err != nil {
-		logrus.Error("Connection failed:", err)
+		logrus.Warning("Connection failed:", err, " trying p2p-circuit/ipfs/")
 		p.host.Network().(*swarm.Swarm).Backoff().Clear(addrInfo.ID)
 		relayaddr, _ := ma.NewMultiaddr("/p2p-circuit/ipfs/" + addrInfo.ID.Pretty())
 		h3relayInfo := peer.AddrInfo{
