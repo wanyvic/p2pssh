@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	peer "github.com/libp2p/go-libp2p-peer"
 	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
 )
@@ -51,6 +52,14 @@ func (c *client) Connect() error {
 }
 func (c *client) Close() {
 	c.conn.Close()
+}
+func Ping(tcpAddr *net.TCPAddr, NodeID peer.ID) error {
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	if err != nil {
+		return err
+	}
+	_ = conn
+	return nil
 }
 func (c *client) handle() {
 

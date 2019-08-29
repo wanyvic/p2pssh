@@ -18,6 +18,8 @@ import (
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	host "github.com/libp2p/go-libp2p-host"
 	kaddht "github.com/libp2p/go-libp2p-kad-dht"
+	quic "github.com/libp2p/go-libp2p-quic-transport"
+	"github.com/libp2p/go-tcp-transport"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
@@ -26,8 +28,8 @@ import (
 
 var (
 	bootstarp = []string{
-		"/ip4/119.3.66.159/tcp/9000/p2p/QmdQERFyHXZE4mBUuSrjbcuicRrmrQk4BB6uTAfiFWWjvq",
-		"/ip4/132.232.79.195/tcp/9000/p2p/QmZLdPPkXanNCaQYk7CUaQkPioYBnoanhHC4Z9ZvF7eNWt",
+		"/ip4/119.3.66.159/udp/9000/quic/p2p/QmdQERFyHXZE4mBUuSrjbcuicRrmrQk4BB6uTAfiFWWjvq",
+		"/ip4/132.232.79.195/udp/9000/quic/p2p/QmZLdPPkXanNCaQYk7CUaQkPioYBnoanhHC4Z9ZvF7eNWt",
 	}
 )
 
@@ -61,6 +63,24 @@ func GetLibp2p() *P2PSSH {
 }
 func New() (p *P2PSSH, err error) {
 	p = &P2PSSH{}
+
+	transports := libp2p.ChainOptions(
+		libp2p.Transport(tcp.NewTCPTransport),
+		libp2p.Transport(quic.NewTransport),
+	)
+
+	// muxers := libp2p.ChainOptions(
+	// 	libp2p.Muxer("/yamux/1.0.0", yamux.DefaultTransport),
+	// 	libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport),
+	// )
+
+	// security := libp2p.Security(secio.ID, secio.New)
+
+	listenAddrs := libp2p.ListenAddrStrings(
+		// "/ip4/0.0.0.0/tcp/9000",
+		"/ip4/0.0.0.0/udp/9000/quic",
+	)
+
 	if PrivateKey != "" {
 		priv_bytes, err := hex.DecodeString(PrivateKey)
 		if err != nil {
@@ -70,9 +90,9 @@ func New() (p *P2PSSH, err error) {
 		if err != nil {
 			return nil, err
 		}
-		p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9000"), libp2p.Identity(priv), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
+		p.host, err = libp2p.New(context.Background(), transports, listenAddrs, libp2p.Identity(priv), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
 	} else {
-		p.host, err = libp2p.New(context.Background(), libp2p.ListenAddrStrings("/ip4/0.0.0.0/tcp/9000"), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
+		p.host, err = libp2p.New(context.Background(), transports, listenAddrs, libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
 	}
 	if err != nil {
 		return nil, err
