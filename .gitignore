@@ -12,3 +12,5 @@
 *.out
 cmd/p2pssh/p2pssh
 .vscode/launch.json
+p2pssh
+version/version.go

@@ -19,12 +19,12 @@ import (
 	"fmt"
 	"os"
 
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
+	"github.com/wanyvic/p2pssh/version"
 )
 
 type rootOptions struct {
@@ -50,6 +50,7 @@ var rootCmd = &cobra.Command{
 			logrus.Error(err)
 		}
 	},
+	Version: fmt.Sprintf("%s, build %s", version.Version, version.GitCommit),
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
