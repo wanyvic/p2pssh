@@ -35,6 +35,7 @@ func handleStream(s network.Stream) {
 	logrus.Debug(string(buf[:n]))
 	if auth, found := UnmarshalConfig(string(buf[:n])); found {
 		if err := ssh.Start(r, w, auth); err != nil {
+			logrus.Error(err)
 			w.Write([]byte(err.Error()))
 		}
 	}

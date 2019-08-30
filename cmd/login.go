@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/wanyvic/p2pssh/api"
 	"github.com/wanyvic/p2pssh/client"
-	"github.com/wanyvic/p2pssh/p2pssh/login"
+	"github.com/wanyvic/p2pssh/p2p/login"
 )
 
 const (

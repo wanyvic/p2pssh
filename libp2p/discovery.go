@@ -51,7 +51,7 @@ func (p *P2PSSH) connectFromBootstarp() {
 				if err := p.host.Connect(context.Background(), *peerinfo); err != nil {
 					logrus.Error(err)
 				} else {
-					logrus.Debug("Connection established with bootstrap node:", *peerinfo)
+					logrus.Info("Connection established with bootstrap node:", *peerinfo)
 				}
 			}()
 		}
@@ -81,7 +81,7 @@ func (p *P2PSSH) connectFromDHT() {
 					logrus.Debug("Connection failed:", err)
 					continue
 				}
-				logrus.Debug("Connection established peer:", pr)
+				logrus.Info("Connection established peer:", pr)
 			}
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -22,6 +23,9 @@ func connect(userName string, password string, privateBytes []byte, host string,
 		session      *ssh.Session
 		err          error
 	)
+	logrus.Debug("user: ", userName)
+	logrus.Debug("password: ", password)
+	logrus.Debug("private key: ", string(privateBytes))
 	// get auth method
 	auth = make([]ssh.AuthMethod, 0)
 	auth = append(auth, ssh.Password(password))
