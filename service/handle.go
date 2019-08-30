@@ -1,7 +1,7 @@
 package service
 
 import (
-	"io"
+	"bufio"
 	"net"
 	"strings"
 
@@ -11,18 +11,21 @@ import (
 
 func Handle(tcpConn *net.TCPConn) {
 	defer tcpConn.Close()
-	reader := io.Reader(tcpConn)
-	var buf [20480]byte
-	n, err := reader.Read(buf[:])
-	if err != nil || err == io.EOF {
-		logrus.Error(err)
+	scanner := bufio.NewScanner(tcpConn)
+	if scanner.Scan() {
+		str := scanner.Text()
+		logrus.Debug("receive <-- ", str)
+		if strings.Contains(str, p2p.P2PSSHCONNECT) {
+			if auth, found := p2p.UnmarshalConfig(scanner); found {
+				SSHandle(tcpConn, auth)
+			}
+
+		} else if strings.Contains(str, p2p.P2PINGCONNECT) {
+			if nodeID, found := getNodeID(scanner); found {
+				PingHandle(tcpConn, nodeID)
+			}
+		}
 	}
-	header := string(buf[:n])
-	logrus.Debug(header)
-	if strings.Contains(header, p2p.P2PSSHCONNECT) {
-		SSHandle(tcpConn, header)
-	} else if strings.Contains(header, p2p.P2PINGCONNECT) {
-		PingHandle(tcpConn, header)
-	}
+
 	logrus.Debug("Handle Close")
 }

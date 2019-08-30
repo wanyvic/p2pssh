@@ -15,14 +15,13 @@ import (
 )
 
 func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error {
-	logrus.Debug("p2p connect")
 	addrInfo, err := p.dht.FindPeer(context.Background(), pid)
 	if err != nil {
 		logrus.Error(pid)
 		return err
 	}
 	if err := p.host.Connect(context.Background(), addrInfo); err != nil {
-		logrus.Error("Connection failed:", err)
+		logrus.Warning("Connection failed:", err, " trying p2p-circuit/ipfs/", pid)
 		p.host.Network().(*swarm.Swarm).Backoff().Clear(addrInfo.ID)
 		relayaddr, _ := ma.NewMultiaddr("/p2p-circuit/ipfs/" + addrInfo.ID.Pretty())
 		h3relayInfo := peer.AddrInfo{
@@ -30,33 +29,33 @@ func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error 
 			Addrs: []ma.Multiaddr{relayaddr},
 		}
 		if err := p.host.Connect(context.Background(), h3relayInfo); err != nil {
-			logrus.Error(h3relayInfo, err)
+			logrus.Error("Connection failed: ", pid)
+			return err
 		}
 	}
-	logrus.Debug("Connection established peer:", addrInfo)
+	logrus.Debug("Connection established peer:", pid)
 
 	stream, err := p.host.NewStream(context.Background(), addrInfo.ID, protocol.ID(ID))
 
 	if err != nil {
-		logrus.Error("Connection failed:", err)
+		logrus.Error("Stream open failed:", err)
 		return err
 	}
 	r := io.Reader(stream)
 	w := io.Writer(stream)
 	go io.Copy(w, reader)
 	io.Copy(writer, r)
-	logrus.Debug("libp2p ssh close")
+	logrus.Debug("ssh stream close")
 	return nil
 }
 func (p *P2PSSH) Ping(pid peer.ID, reader io.Reader, writer io.Writer) error {
-	logrus.Debug("p2p connect")
 	addrInfo, err := p.dht.FindPeer(context.Background(), pid)
 	if err != nil {
 		logrus.Error(pid)
 		return err
 	}
 	if err := p.host.Connect(context.Background(), addrInfo); err != nil {
-		logrus.Warning("Connection failed:", err, " trying p2p-circuit/ipfs/")
+		logrus.Warning("Connection failed:", err, " trying p2p-circuit/ipfs/", pid)
 		p.host.Network().(*swarm.Swarm).Backoff().Clear(addrInfo.ID)
 		relayaddr, _ := ma.NewMultiaddr("/p2p-circuit/ipfs/" + addrInfo.ID.Pretty())
 		h3relayInfo := peer.AddrInfo{
@@ -67,7 +66,7 @@ func (p *P2PSSH) Ping(pid peer.ID, reader io.Reader, writer io.Writer) error {
 			logrus.Error(h3relayInfo, err)
 		}
 	}
-	logrus.Debug("Connection established peer:", addrInfo)
+	logrus.Debug("Connection established peer:", pid)
 
 	pctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -90,7 +89,7 @@ func (p *P2PSSH) Ping(pid peer.ID, reader io.Reader, writer io.Writer) error {
 		case <-time.After(time.Second * 4):
 			writer.Write([]byte("failed to receive ping\n"))
 		case <-pctx.Done():
-			logrus.Debug("libp2p ping close")
+			logrus.Debug("ping stream close")
 			return nil
 		}
 		time.Sleep(time.Second)

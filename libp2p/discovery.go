@@ -41,7 +41,7 @@ func (p *P2PSSH) connectFromBootstarp() {
 			index := p.getRandomFromBootstrap()
 			maddr, err := ma.NewMultiaddr(p.bootstrap[index])
 			if err != nil {
-				logrus.Error(err)
+				logrus.Error("err")
 				continue
 			}
 			peerinfo, _ := peer.AddrInfoFromP2pAddr(maddr)
@@ -49,7 +49,7 @@ func (p *P2PSSH) connectFromBootstarp() {
 			go func() {
 				defer wg.Done()
 				if err := p.host.Connect(context.Background(), *peerinfo); err != nil {
-					logrus.Error(err)
+					logrus.Error("Connection bootstrap failed: ", peerinfo.ID)
 				} else {
 					logrus.Info("Connection established with bootstrap node:", *peerinfo)
 				}
@@ -67,7 +67,7 @@ func (p *P2PSSH) connectFromDHT() {
 		}
 		peerChan, err := p.routingDiscovery.FindPeers(context.Background(), Community)
 		if err != nil {
-			logrus.Error(err)
+			logrus.Error("no found peers")
 			return
 		}
 		for pr := range peerChan {
@@ -78,7 +78,7 @@ func (p *P2PSSH) connectFromDHT() {
 			if p.host.Network().Connectedness(pr.ID) != network.Connected {
 				logrus.Debug("Connecting to:", pr)
 				if err := p.host.Connect(context.Background(), pr); err != nil {
-					logrus.Debug("Connection failed:", err)
+					logrus.Debug("Connection failed:", pr)
 					continue
 				}
 				logrus.Info("Connection established peer:", pr)

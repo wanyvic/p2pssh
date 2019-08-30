@@ -9,7 +9,6 @@ import (
 )
 
 func New(ctx context.Context, tcpAddr *net.TCPAddr) p2pService {
-	logrus.Debug("New")
 	s := p2pService{}
 	s.TCPAddr = tcpAddr
 	return s
