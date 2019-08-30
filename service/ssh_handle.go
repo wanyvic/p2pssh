@@ -18,6 +18,7 @@ func SSHandle(tcpConn *net.TCPConn, header string) {
 		err := libp2p.Connect(auth.NodeID, reader, writer)
 		if err != nil {
 			logrus.Error("Connect to ", auth.NodeID, " failed")
+			writer.Write([]byte("Connect failed"))
 			return
 		}
 	}

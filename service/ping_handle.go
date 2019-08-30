@@ -20,6 +20,7 @@ func PingHandle(tcpConn *net.TCPConn, header string) {
 		err := libp2p.Ping(nodeID, reader, writer)
 		if err != nil {
 			logrus.Error("Connect to ", nodeID, " failed")
+			writer.Write([]byte("Connect failed"))
 			return
 		}
 	}

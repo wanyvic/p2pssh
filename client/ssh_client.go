@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"time"
@@ -16,11 +17,14 @@ import (
 )
 
 func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
+	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
+	// do not display entered characters on the screen
+	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
 		for _ = range signalChan {
-			conn.Write([]byte("exit\n"))
+			conn.Write([]byte{3})
 		}
 	}()
 	r := io.Reader(conn)
@@ -44,5 +48,6 @@ func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
 		go io.Copy(w, os.Stdin)
 		io.Copy(os.Stdout, r)
 	}
-	logrus.Debug("PingHandle exit")
+	exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+	logrus.Debug("SSHandle exit")
 }
