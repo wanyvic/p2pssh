@@ -12,7 +12,7 @@ import (
 func Handle(tcpConn *net.TCPConn) {
 	defer tcpConn.Close()
 	reader := io.Reader(tcpConn)
-	var buf [1024]byte
+	var buf [20480]byte
 	n, err := reader.Read(buf[:])
 	if err != nil || err == io.EOF {
 		logrus.Error(err)

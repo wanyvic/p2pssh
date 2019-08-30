@@ -33,7 +33,7 @@ func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
 	if err != nil {
 		logrus.Error(err)
 	}
-	b := []byte(fmt.Sprintf(p2p.P2PSSHCONNECT+"\n%s\n", string(auth)))
+	b := []byte(fmt.Sprintf(p2p.P2PSSHCONNECT+"\n%s", string(auth)))
 	time.Sleep(time.Second)
 	conn.Write(b)
 	buf := make([]byte, 1024)

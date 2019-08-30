@@ -26,7 +26,7 @@ func handleStream(s network.Stream) {
 	// Create a buffer stream for non blocking read and write.
 	r := io.Reader(s)
 	w := io.Writer(s)
-	var buf [1024]byte
+	var buf [20480]byte
 
 	n, err := r.Read(buf[:])
 	if err != nil || err == io.EOF {
@@ -46,7 +46,7 @@ func handleStream(s network.Stream) {
 func UnmarshalConfig(str string) (auth api.ClientConfig, found bool) {
 	if strings.Contains(str, P2PSSHCONNECT) {
 		array := strings.Split(str, "\n")
-		if len(array) < 3 {
+		if len(array) < 2 {
 			logrus.Error("no auth")
 			return auth, false
 		}
