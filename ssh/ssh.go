@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -23,9 +22,6 @@ func connect(userName string, password string, privateBytes []byte, host string,
 		session      *ssh.Session
 		err          error
 	)
-	logrus.Debug("user: ", userName)
-	logrus.Debug("password: ", password)
-	logrus.Debug("private key: ", string(privateBytes))
 	// get auth method
 	auth = make([]ssh.AuthMethod, 0)
 	auth = append(auth, ssh.Password(password))
@@ -66,16 +62,16 @@ func Start(r io.Reader, w io.Writer, config api.ClientConfig) error {
 	}
 	defer session.Close()
 	fd := int(0)
-	if terminal.IsTerminal(int(os.Stdin.Fd())) {
-		fd = int(os.Stdin.Fd())
-	} else {
-		tty, err := os.Open("/dev/tty")
-		if err != nil {
-			return errors.New(err.Error() + "error allocating terminal")
-		}
-		defer tty.Close()
-		fd = int(tty.Fd())
+	// if terminal.IsTerminal(int(os.Stdin.Fd())) {
+	// 	fd = int(os.Stdin.Fd())
+	// } else {
+	tty, err := os.Open("/dev/tty")
+	if err != nil {
+		return errors.New(err.Error() + "error allocating terminal")
 	}
+	defer tty.Close()
+	fd = int(tty.Fd())
+	// }
 	oldState, err := terminal.MakeRaw(fd)
 	if err != nil {
 		return err
