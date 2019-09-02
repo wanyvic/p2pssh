@@ -45,6 +45,10 @@ func ParseClientConfig(str string, keyPath string) (config api.ClientConfig, err
 		}
 		config.PrivateKey = privateBytes
 	}
+	config.Width, config.Height, err = getTerminalSize()
+	if err != nil {
+		return config, err
+	}
 	return config, nil
 }
 

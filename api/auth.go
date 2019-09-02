@@ -9,4 +9,6 @@ type ClientConfig struct {
 	NodeID     peer.ID
 	Password   string
 	PrivateKey []byte
+	Width      int
+	Height     int
 }
