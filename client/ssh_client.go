@@ -6,19 +6,17 @@ import (
 	"io"
 	"net"
 	"os"
-	"os/exec"
 	"os/signal"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
 	p2p "github.com/wanyvic/p2pssh/libp2p"
+	"github.com/wanyvic/p2pssh/p2p/login"
 )
 
 func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
-	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
-	// do not display entered characters on the screen
-	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+	login.SetTerminalEcho(true)
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
@@ -48,6 +46,6 @@ func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
 		go io.Copy(w, os.Stdin)
 		io.Copy(os.Stdout, r)
 	}
-	exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+	login.SetTerminalEcho(false)
 	logrus.Debug("SSHandle exit")
 }

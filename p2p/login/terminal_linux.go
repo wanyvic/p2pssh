@@ -3,6 +3,7 @@ package login
 import (
 	"errors"
 	"os"
+	"os/exec"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -30,4 +31,14 @@ func getTerminalSize() (int, int, error) {
 		return 0, 0, err
 	}
 	return termWidth, termHeight, nil
+}
+func SetTerminalEcho(flag bool) {
+	if flag {
+
+		exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
+		// do not display entered characters on the screen
+		exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+	} else {
+		exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+	}
 }
