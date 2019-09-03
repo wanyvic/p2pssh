@@ -61,7 +61,7 @@ func New(privkey string) (_ *P2PSSH, err error) {
 	if err != nil {
 		return nil, err
 	}
-	p.host, err = libp2p.New(context.Background(), transports, listenAddrs, libp2p.Identity(priv), libp2p.EnableRelay(circuit.OptDiscovery), libp2p.NATPortMap())
+	p.host, err = libp2p.New(context.Background(), transports, listenAddrs, libp2p.Identity(priv), libp2p.EnableRelay(circuit.OptDiscovery, circuit.OptHop, circuit.OptActive), libp2p.NATPortMap())
 	if err != nil {
 		return nil, err
 	}
