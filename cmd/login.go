@@ -23,68 +23,60 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/wanyvic/p2pssh/api"
 	"github.com/wanyvic/p2pssh/client"
+	"github.com/wanyvic/p2pssh/cmd/global"
 	"github.com/wanyvic/p2pssh/p2p/login"
 )
 
-const (
-	DefaultSSHPrivateKey = "$HOME/.ssh/id_rsa"
-	DefaultDaemonAddress = "127.0.0.1:9001"
-)
+func NewLoginCommand(rootCmd cobra.Command) *cobra.Command {
 
-var (
-	SSHPrivateKey string
-	DaemonAddress string
-)
-
-// loginCmd represents the login command
-var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
+	// loginCmd represents the login command
+	var loginCmd = &cobra.Command{
+		Use:   "login",
+		Short: "A brief description of your command",
+		Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		logrus.Debug("login called")
-		if err := configureDaemonLogs(&Opt); err != nil {
-			logrus.Error(err)
-		}
-		if len(args) <= 0 {
-			logrus.Error("No connection")
-			return
-		}
-		logrus.Debug(DaemonAddress, SSHPrivateKey)
-		config := &api.ClientConfig{}
-		var err error
-		if config, err = configureClientConfig(args[0]); err != nil {
-			logrus.Error(err)
-			return
-		}
-		if tcpAddr, err := parseConnection(DaemonAddress); err != nil {
-			logrus.Error(err)
-			return
-		} else {
-			cli := client.New(context.Background(), tcpAddr, *config)
-			cli.ConnHandler = client.SSHandle
-			if err := cli.Connect(); err != nil {
+		Run: func(cmd *cobra.Command, args []string) {
+			logrus.Debug("login called")
+			if err := global.ConfigureDaemonLogs(&global.Opt); err != nil {
+				logrus.Error(err)
+			}
+			if len(args) <= 0 {
+				logrus.Error("No connection")
+				return
+			}
+			logrus.Debug(global.Opt.DaemonAddress, global.Opt.SSHPrivateKey)
+			config := &api.ClientConfig{}
+			var err error
+			if config, err = configureClientConfig(args[0]); err != nil {
 				logrus.Error(err)
 				return
 			}
-		}
-	},
-}
+			if tcpAddr, err := parseConnection(global.Opt.DaemonAddress); err != nil {
+				logrus.Error(err)
+				return
+			} else {
+				cli := client.New(context.Background(), tcpAddr, *config)
+				cli.ConnHandler = client.SSHandle
+				if err := cli.Connect(); err != nil {
+					logrus.Error(err)
+					return
+				}
+			}
+		},
+	}
 
-func init() {
+	loginCmd.PersistentFlags().StringVarP(&global.Opt.SSHPrivateKey, "privkey", "P", "", `ssh private key file such as `+api.DefaultSSHPrivateKey)
+	loginCmd.PersistentFlags().StringVarP(&global.Opt.DaemonAddress, "daemon-address", "D", api.DefaultDaemonAddress, `connection daemon address`)
 
 	rootCmd.AddCommand(loginCmd)
-
-	loginCmd.PersistentFlags().StringVarP(&SSHPrivateKey, "privkey", "P", "", `ssh private key file such as `+DefaultSSHPrivateKey)
-	loginCmd.PersistentFlags().StringVarP(&DaemonAddress, "daemon-address", "D", DefaultDaemonAddress, `connection daemon address`)
+	return loginCmd
 }
 func configureClientConfig(connInfo string) (*api.ClientConfig, error) {
-	config, err := login.ParseClientConfig(connInfo, SSHPrivateKey)
+	config, err := login.ParseClientConfig(connInfo, global.Opt.SSHPrivateKey)
 	if err != nil {
 		return nil, err
 	}

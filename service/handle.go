@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	p2p "github.com/wanyvic/p2pssh/libp2p"
+	"github.com/wanyvic/p2pssh/service/rpcserver"
 )
 
 func Handle(tcpConn *net.TCPConn) {
@@ -24,6 +25,8 @@ func Handle(tcpConn *net.TCPConn) {
 			if nodeID, found := getNodeID(scanner); found {
 				PingHandle(tcpConn, nodeID)
 			}
+		} else if strings.Contains(str, p2p.P2PRPCONNECT) {
+			rpcserver.Handle(tcpConn)
 		}
 	}
 

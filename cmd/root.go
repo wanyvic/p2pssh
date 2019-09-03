@@ -22,20 +22,11 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/wanyvic/p2pssh/cmd/connect"
+	"github.com/wanyvic/p2pssh/cmd/global"
 	"github.com/wanyvic/p2pssh/version"
 )
-
-type rootOptions struct {
-	CfgFile  string
-	flags    *pflag.FlagSet
-	Debug    bool
-	Hosts    []string
-	LogLevel string
-}
-
-var Opt rootOptions
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -46,7 +37,7 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := configureDaemonLogs(&Opt); err != nil {
+		if err := global.ConfigureDaemonLogs(&global.Opt); err != nil {
 			logrus.Error(err)
 		}
 	},
@@ -64,23 +55,25 @@ func Execute() error {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-
-	rootCmd.PersistentFlags().StringVar(&Opt.CfgFile, "config", "", `config file (default is $HOME/.p2pssh.yaml)`)
-	rootCmd.PersistentFlags().StringVarP(&Opt.LogLevel, "log-level", "l", "info", `Set the logging level ("debug"|"info"|"warn"|"error"|"fatal")`)
+	rootCmd.PersistentFlags().StringVar(&global.Opt.CfgFile, "config", "", `config file (default is $HOME/.p2pssh.yaml)`)
+	rootCmd.PersistentFlags().StringVarP(&global.Opt.LogLevel, "log-level", "l", "info", `Set the logging level ("debug"|"info"|"warn"|"error"|"fatal")`)
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.AddCommand(NewDaemonCommand(*rootCmd))
+	rootCmd.AddCommand(NewLoginCommand(*rootCmd))
+	rootCmd.AddCommand(NewPingCommand(*rootCmd))
+	rootCmd.AddCommand(connect.NewConnectCommand(*rootCmd))
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if Opt.CfgFile != "" {
+	if global.Opt.CfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(Opt.CfgFile)
+		viper.SetConfigFile(global.Opt.CfgFile)
 	} else {
 		// Find home directory.
 		home, err := homedir.Dir()

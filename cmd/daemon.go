@@ -18,6 +18,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/wanyvic/p2pssh/cmd/global"
 	p2p "github.com/wanyvic/p2pssh/libp2p"
 
 	"github.com/sirupsen/logrus"
@@ -31,36 +32,34 @@ type daemonOptions struct {
 
 var daemonOpt daemonOptions
 
-// daemonCmd represents the daemon command
-var daemonCmd = &cobra.Command{
-	Use:   "daemon",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
+func NewDaemonCommand(rootCmd cobra.Command) *cobra.Command {
+
+	// daemonCmd represents the daemon command
+	var daemonCmd = &cobra.Command{
+		Use:   "daemon",
+		Short: "A brief description of your command",
+		Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := configureDaemonLogs(&Opt); err != nil {
-			logrus.Error(err)
-		}
-		p2p.PrivateKey = daemonOpt.PrivateKey
-		cli := p2p.GetLibp2p()
-		cli.NewSSHService()
-		cli.NewPingService()
-		svi := service.New(context.Background(), service.DefaultConnect())
-		svi.ConnHandler = service.Handle
-		if err := svi.Start(); err != nil {
-			logrus.Error(err)
-		}
-		select {}
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(daemonCmd)
-
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := global.ConfigureDaemonLogs(&global.Opt); err != nil {
+				logrus.Error(err)
+			}
+			p2p.PrivateKey = daemonOpt.PrivateKey
+			cli := p2p.GetLibp2p()
+			cli.NewSSHService()
+			cli.NewPingService()
+			svi := service.New(context.Background(), service.DefaultConnect())
+			svi.ConnHandler = service.Handle
+			if err := svi.Start(); err != nil {
+				logrus.Error(err)
+			}
+			select {}
+		},
+	}
 	// rootCmd.PersistentFlags().Int16VarP(&Opt.CfgFile, "config", "", `config file (default is $HOME/.p2pssh.yaml)`)
 	// Here you will define your flags and configuration settings.
 
@@ -72,4 +71,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// daemonCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.AddCommand(daemonCmd)
+	return daemonCmd
 }

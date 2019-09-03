@@ -13,12 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package connect
 
 import (
-	"context"
+	"fmt"
 
-	peer "github.com/libp2p/go-libp2p-peer"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wanyvic/p2pssh/api"
@@ -26,10 +25,10 @@ import (
 	"github.com/wanyvic/p2pssh/cmd/global"
 )
 
-func NewPingCommand(rootCmd cobra.Command) *cobra.Command {
-	// pingCmd represents the ping command
-	var pingCmd = &cobra.Command{
-		Use:   "ping",
+func NewConnectLSCommand(rootCmd cobra.Command) *cobra.Command {
+	// lsCmd represents the ls command
+	var lsCmd = &cobra.Command{
+		Use:   "ls",
 		Short: "A brief description of your command",
 		Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -38,46 +37,32 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			logrus.Debug("ping called")
 			if err := global.ConfigureDaemonLogs(&global.Opt); err != nil {
 				logrus.Error(err)
 			}
-			if len(args) <= 0 {
-				logrus.Error("No connection")
-				return
-			}
-			NodeID, err := peer.IDB58Decode(args[0])
-			config := &api.ClientConfig{}
+			req := api.ConnectLSRequests{}
+			res := api.ConnectLSResponses{}
+			err := client.JsonRPConnect(global.Opt.DaemonAddress, "Server.ConnectLS", &req, &res)
 			if err != nil {
-				logrus.Error(err)
-				return
-			} else {
-				config.NodeID = NodeID
-				if tcpAddr, err := parseConnection(global.Opt.DaemonAddress); err != nil {
-					logrus.Error(err)
-					return
-				} else {
-					cli := client.New(context.Background(), tcpAddr, *config)
-					cli.ConnHandler = client.PingHandle
-					if err := cli.Connect(); err != nil {
-						logrus.Error(err)
-						return
-					}
-				}
+				fmt.Println(err)
+			}
+			for _, peer := range res.Peers {
+				fmt.Println(peer)
 			}
 		},
 	}
-	pingCmd.PersistentFlags().StringVarP(&global.Opt.DaemonAddress, "daemon-address", "D", api.DefaultDaemonAddress, `connection daemon address`)
+
+	lsCmd.PersistentFlags().StringVarP(&global.Opt.DaemonAddress, "daemon-address", "D", api.DefaultDaemonAddress, `connection daemon address`)
+	rootCmd.AddCommand(lsCmd)
+
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// pingCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// lsCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// pingCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
-	rootCmd.AddCommand(pingCmd)
-	return pingCmd
+	// lsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	return lsCmd
 }

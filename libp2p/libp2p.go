@@ -8,6 +8,7 @@ import (
 
 	"github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
+	"github.com/libp2p/go-libp2p-core/peer"
 	crypto "github.com/libp2p/go-libp2p-crypto"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	host "github.com/libp2p/go-libp2p-host"
@@ -95,4 +96,7 @@ func getPrivateKey(privkey string) (priv crypto.PrivKey, err error) {
 		return nil, err
 	}
 	return priv, nil
+}
+func (p *P2PSSH) GetPeers() []peer.ID {
+	return p.host.Network().Peers()
 }

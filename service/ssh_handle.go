@@ -14,6 +14,7 @@ func SSHandle(tcpConn *net.TCPConn, auth api.ClientConfig) {
 	reader := io.Reader(tcpConn)
 	writer := io.Writer(tcpConn)
 	libp2p := p2p.GetLibp2p()
+
 	writer.Write([]byte(p2p.P2PSSHCONNECTED))
 	err := libp2p.Connect(auth.NodeID, reader, writer)
 	if err != nil {

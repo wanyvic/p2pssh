@@ -1,14 +1,28 @@
-package cmd
+package global
 
 import (
 	"fmt"
 
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
 )
 
-// configureDaemonLogs sets the logrus logging level and formatting
-func configureDaemonLogs(Opt *rootOptions) error {
+type rootOptions struct {
+	CfgFile  string
+	flags    *pflag.FlagSet
+	Debug    bool
+	Hosts    []string
+	LogLevel string
+
+	SSHPrivateKey string
+	DaemonAddress string
+}
+
+var Opt rootOptions
+
+// ConfigureDaemonLogs sets the logrus logging level and formatting
+func ConfigureDaemonLogs(Opt *rootOptions) error {
 	if Opt.LogLevel != "" {
 		lvl, err := logrus.ParseLevel(Opt.LogLevel)
 		if err != nil {
