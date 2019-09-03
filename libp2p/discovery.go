@@ -41,7 +41,7 @@ func (p *P2PSSH) connectFromBootstarp() {
 			index := p.getRandomFromBootstrap()
 			maddr, err := ma.NewMultiaddr(p.bootstrap[index])
 			if err != nil {
-				logrus.Error("err")
+				logrus.Error(err)
 				continue
 			}
 			peerinfo, _ := peer.AddrInfoFromP2pAddr(maddr)
@@ -85,4 +85,27 @@ func (p *P2PSSH) connectFromDHT() {
 			}
 		}
 	}
+}
+func (p *P2PSSH) ConnectPeerInfo(peerInfo *peer.AddrInfo) error {
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*2)
+	if p.host.Network().Connectedness(peerInfo.ID) != network.Connected {
+		logrus.Debug("Connecting to:", peerInfo)
+		if err := p.host.Connect(ctx, *peerInfo); err != nil {
+			logrus.Debug("Connection failed:", peerInfo)
+			return err
+		}
+		logrus.Info("Connection established peer:", peerInfo)
+	}
+	return nil
+}
+func (p *P2PSSH) DisConnectPeer(peerID peer.ID) error {
+	if p.host.Network().Connectedness(peerID) == network.Connected {
+		logrus.Debug("DisConnecting to:", peerID)
+		if err := p.host.Network().ClosePeer(peerID); err != nil {
+			logrus.Debug("Connection failed:", peerID)
+			return err
+		}
+		logrus.Info("Connection DisConnected peer:", peerID)
+	}
+	return nil
 }

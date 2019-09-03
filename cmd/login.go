@@ -19,6 +19,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wanyvic/p2pssh/api"
@@ -39,14 +40,16 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return errors.Errorf("argument error")
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			logrus.Debug("login called")
 			if err := global.ConfigureDaemonLogs(&global.Opt); err != nil {
 				logrus.Error(err)
-			}
-			if len(args) <= 0 {
-				logrus.Error("No connection")
-				return
 			}
 			logrus.Debug(global.Opt.DaemonAddress, global.Opt.SSHPrivateKey)
 			config := &api.ClientConfig{}

@@ -18,18 +18,18 @@ package connect
 import (
 	"fmt"
 
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/wanyvic/p2pssh/api"
 	"github.com/wanyvic/p2pssh/client"
 	"github.com/wanyvic/p2pssh/cmd/global"
 )
 
-func NewConnectLSCommand(rootCmd cobra.Command) *cobra.Command {
-	// lsCmd represents the ls command
-	var lsCmd = &cobra.Command{
-		Use:   "ls",
+func NewConnectRmCommand(rootCmd cobra.Command) *cobra.Command {
+	// rmCmd represents the rm command
+	var rmCmd = &cobra.Command{
+		Use:   "rm",
 		Short: "A brief description of your command",
 		Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -38,38 +38,48 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 0 {
+			if len(args) != 1 {
 				return errors.Errorf("argument error")
 			}
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := global.ConfigureDaemonLogs(&global.Opt); err != nil {
-				logrus.Error(err)
+				fmt.Println(err)
+				return
 			}
-			req := api.ConnectRequests{}
-			res := api.ConnectResponses{}
-			err := client.JsonRPConnect(global.Opt.DaemonAddress, "Server.ConnectLS", &req, &res)
+			peer, err := peer.IDB58Decode(args[0])
 			if err != nil {
 				fmt.Println(err)
+				return
 			}
-			for _, peer := range res.Peers {
-				fmt.Println(peer)
+			req := api.ConnectRmRequests{Peer: peer}
+			res := api.ConnectRmResponses{}
+			err = client.JsonRPConnect(global.Opt.DaemonAddress, "Server.ConnectRm", &req, &res)
+			if err != nil {
+				fmt.Println(err)
+				return
 			}
+			if res.Err != "" {
+				fmt.Println(res.Err)
+			} else {
+				fmt.Println(res.Result)
+			}
+
 		},
 	}
 
-	lsCmd.PersistentFlags().StringVarP(&global.Opt.DaemonAddress, "daemon-address", "D", api.DefaultDaemonAddress, `connection daemon address`)
-	rootCmd.AddCommand(lsCmd)
+	rmCmd.PersistentFlags().StringVarP(&global.Opt.DaemonAddress, "daemon-address", "D", api.DefaultDaemonAddress, `connection daemon address`)
+	rootCmd.AddCommand(rmCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// lsCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// rmCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// lsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	return lsCmd
+	// rmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	return rmCmd
 }

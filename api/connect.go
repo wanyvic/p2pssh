@@ -1,9 +1,23 @@
 package api
 
-import peer "github.com/libp2p/go-libp2p-peer"
+import (
+	"github.com/libp2p/go-libp2p-core/peer"
+)
 
-type ConnectLSRequests struct {
+type ConnectRequests struct {
 }
-type ConnectLSResponses struct {
+type ConnectResponses struct {
 	Peers []peer.ID
 }
+type ConnectAddRequests struct {
+	PeerAddr peer.AddrInfo
+}
+type ConnectAddResponses struct {
+	Result string
+	Err    string
+}
+
+type ConnectRmRequests struct {
+	Peer peer.ID
+}
+type ConnectRmResponses ConnectAddResponses

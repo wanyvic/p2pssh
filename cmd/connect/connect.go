@@ -16,8 +16,7 @@ limitations under the License.
 package connect
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -33,11 +32,18 @@ func NewConnectCommand(rootCmd cobra.Command) *cobra.Command {
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if cmd.HasSubCommands() {
+				return errors.Errorf("argument error")
+			}
+			return errors.Errorf("argument error")
+		},
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("connect called")
 		},
 	}
 	connectCmd.AddCommand(NewConnectLSCommand(*connectCmd))
+	connectCmd.AddCommand(NewConnectAddCommand(*connectCmd))
+	connectCmd.AddCommand(NewConnectRmCommand(*connectCmd))
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

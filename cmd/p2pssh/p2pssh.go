@@ -14,7 +14,7 @@ func main() {
 	})
 
 	if err := cmd.Execute(); err != nil {
-		logrus.Println(err)
+		// logrus.Println(err)
 	}
 	logrus.Debug("pssh exit")
 }

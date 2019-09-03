@@ -20,6 +20,7 @@ import (
 	"os"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,6 +37,9 @@ var rootCmd = &cobra.Command{
 	TraverseChildren: true,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
+	Args: func(cmd *cobra.Command, args []string) error {
+		return errors.Errorf("argument error")
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := global.ConfigureDaemonLogs(&global.Opt); err != nil {
 			logrus.Error(err)
