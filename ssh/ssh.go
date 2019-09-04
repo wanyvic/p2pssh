@@ -75,7 +75,9 @@ func Start(r io.Reader, w io.Writer, config api.ClientConfig) error {
 	if err := session.RequestPty("xterm-256color", config.Height, config.Width, modes); err != nil {
 		return errors.New("request for pseudo terminal failed: " + err.Error())
 	}
-
-	session.Run("bash")
+	if err = session.Shell(); err != nil {
+		return err
+	}
+	session.Wait()
 	return nil
 }

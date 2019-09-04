@@ -6,10 +6,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/shiena/ansicolor"
+	"github.com/bitbored/go-ansicon"
 )
 
 func convertColor(r io.Reader) {
-	w := ansicolor.NewAnsiColorWriter(os.Stdout)
+	w := ansicon.Convert(os.Stdout)
 	io.Copy(w, r)
 }
