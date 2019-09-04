@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os/user"
 	"strings"
 
 	"github.com/howeyc/gopass"
@@ -22,6 +23,16 @@ func ParseClientConfig(str string, keyPath string) (config api.ClientConfig, err
 		config.UserName = split[0]
 		nodeID = split[1]
 	} else if len(split) == 1 {
+		u, err := user.Current()
+		if err != nil {
+			return config, err
+		}
+		spt := strings.Split(u.Username, "\\")
+		if len(spt) == 1 {
+			config.UserName = spt[0]
+		} else if len(spt) == 2 {
+			config.UserName = spt[1]
+		}
 		nodeID = split[0]
 	} else {
 		return config, errors.New("args errors")
@@ -31,7 +42,7 @@ func ParseClientConfig(str string, keyPath string) (config api.ClientConfig, err
 		return config, err
 	}
 	if keyPath == "" {
-		fmt.Printf("Password: ")
+		fmt.Printf("%s@%s's password: ", config.UserName, config.NodeID.String())
 		pass, err := gopass.GetPasswd()
 		if err != nil {
 			return config, err
