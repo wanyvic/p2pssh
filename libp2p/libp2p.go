@@ -13,9 +13,8 @@ import (
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	host "github.com/libp2p/go-libp2p-host"
 	kaddht "github.com/libp2p/go-libp2p-kad-dht"
-	quic "github.com/libp2p/go-libp2p-quic-transport"
-	"github.com/libp2p/go-tcp-transport"
 	"github.com/sirupsen/logrus"
+	"github.com/wanyvic/p2pssh/p2p/login"
 )
 
 const (
@@ -48,14 +47,7 @@ func GetLibp2p() *P2PSSH {
 }
 func New(privkey string) (_ *P2PSSH, err error) {
 	p := P2PSSH{}
-	transports := libp2p.ChainOptions(
-		libp2p.Transport(tcp.NewTCPTransport),
-		libp2p.Transport(quic.NewTransport),
-	)
-	listenAddrs := libp2p.ListenAddrStrings(
-		// "/ip4/0.0.0.0/tcp/9000",
-		"/ip4/0.0.0.0/udp/9000/quic",
-	)
+	transports, listenAddrs := login.GetTransport()
 
 	priv, err := getPrivateKey(privkey)
 	if err != nil {

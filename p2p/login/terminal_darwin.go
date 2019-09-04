@@ -5,6 +5,9 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/libp2p/go-libp2p"
+	quic "github.com/libp2p/go-libp2p-quic-transport"
+	"github.com/libp2p/go-tcp-transport"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -41,4 +44,15 @@ func SetTerminalEcho(flag bool) {
 	} else {
 		exec.Command("stty", "-f", "/dev/tty", "echo").Run()
 	}
+}
+func GetTransport() (libp2p.Option, libp2p.Option) {
+	transports := libp2p.ChainOptions(
+		libp2p.Transport(tcp.NewTCPTransport),
+		libp2p.Transport(quic.NewTransport),
+	)
+	listenAddrs := libp2p.ListenAddrStrings(
+		"/ip4/0.0.0.0/tcp/9000",
+		"/ip4/0.0.0.0/udp/9000/quic",
+	)
+	return transports, listenAddrs
 }
