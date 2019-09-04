@@ -44,7 +44,7 @@ func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
 		conn.Write(header)
 		logrus.Debug("send --> ", string(header))
 		go io.Copy(w, os.Stdin)
-		io.Copy(os.Stdout, r)
+		convertColor(r)
 	}
 	login.SetTerminalEcho(false)
 	logrus.Debug("SSHandle exit")
