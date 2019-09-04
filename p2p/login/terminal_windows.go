@@ -1,17 +1,13 @@
 package login
 
 import (
-	"bytes"
-	"fmt"
 	"os"
-	"os/exec"
-	"regexp"
-	"strconv"
 	"syscall"
 
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-tcp-transport"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/windows"
 )
 
 var (
@@ -28,25 +24,19 @@ func init() {
 	}
 }
 func getTerminalSize() (int, int, error) {
-	var out bytes.Buffer
-	cmd := exec.Command("mode", "con")
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ls: error reading console width %s", err.Error())
+	if h, err := windows.GetStdHandle(windows.STD_OUTPUT_HANDLE); err != nil {
+		logrus.Error(err)
+		return 0, 0, err
+	} else {
+		var info windows.ConsoleScreenBufferInfo
+		if err := windows.GetConsoleScreenBufferInfo(h, &info); err != nil {
+			logrus.Error(err)
+			return 0, 0, err
+		}
+		width := info.Window.Right - info.Window.Left + 1
+		height := info.Window.Bottom - info.Window.Top + 1
+		return int(width), int(height), nil
 	}
-	re := regexp.MustCompile(`\d+`)
-	rs := re.FindAllString(out.String(), -1)
-	i, err := strconv.Atoi(rs[0])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ls: error transfering string to int %s", err.Error())
-	}
-	j, err := strconv.Atoi(rs[1])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ls: error transfering string to int %s", err.Error())
-	}
-	logrus.Debug(rs, "width: ", j, " line: ", i)
-	return j, i, nil
 }
 func SetTerminalEcho(flag bool) {
 	h := syscall.Handle(os.Stdin.Fd())
