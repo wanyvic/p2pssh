@@ -12,9 +12,10 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	lssh "github.com/wanyvic/go-libp2p-ssh"
+	"github.com/wanyvic/ssh"
 )
 
-func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error {
+func (p *P2PSSH) SSHConnect(pid peer.ID, clientConfig ssh.ClientConfig, reader io.Reader, writer io.Writer) error {
 	addrInfo, err := p.dht.FindPeer(context.Background(), pid)
 	if err != nil {
 		logrus.Error(pid)
@@ -35,16 +36,15 @@ func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error 
 	}
 	logrus.Debug("Connection established peer:", pid)
 
-	stream, err := p.host.NewStream(context.Background(), addrInfo.ID, lssh.ID)
+	clients := lssh.NewSSHClient(p.host, clientConfig)
+	clients.Stdout = writer
+	clients.Stderr = writer
+	clients.Stdin = reader
 
-	if err != nil {
-		logrus.Error("Stream open failed:", err)
-		return err
-	}
-	r := io.Reader(stream)
-	w := io.Writer(stream)
-	go io.Copy(w, reader)
-	io.Copy(writer, r)
+	ctx, cancel := context.WithCancel(context.Background())
+	clients.Connect(ctx, pid)
+	defer cancel()
+
 	logrus.Debug("ssh stream close")
 	return nil
 }
