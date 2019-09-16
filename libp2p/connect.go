@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
 	swarm "github.com/libp2p/go-libp2p-swarm"
 	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
+	lssh "github.com/wanyvic/go-libp2p-ssh"
 )
 
 func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error {
@@ -35,7 +35,7 @@ func (p *P2PSSH) Connect(pid peer.ID, reader io.Reader, writer io.Writer) error 
 	}
 	logrus.Debug("Connection established peer:", pid)
 
-	stream, err := p.host.NewStream(context.Background(), addrInfo.ID, protocol.ID(ID))
+	stream, err := p.host.NewStream(context.Background(), addrInfo.ID, lssh.ID)
 
 	if err != nil {
 		logrus.Error("Stream open failed:", err)

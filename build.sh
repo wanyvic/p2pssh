@@ -2,7 +2,7 @@
 project_path=$(cd `dirname $0`; pwd)
 mkdir -p "${project_path}/version"
 GITCOMMIT=$(git rev-parse --short HEAD)
-VERSION=$(git describe --abbrev=0 --tags)
+VERSION=$(git describe --tags)
 BUILDTIME=$(date -u -d "@${SOURCE_DATE_EPOCH:-$(date +%s)}" --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')
 cat > ${project_path}/version/version.go <<DVEOF
 // +build autogen
