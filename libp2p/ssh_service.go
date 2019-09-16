@@ -16,11 +16,10 @@ const (
 )
 
 func (p *P2PSSH) NewSSHService() {
-	config, err := lssh.DefaultServerConfig()
+	_, err := lssh.NewSSHService(p.host)
 	if err != nil {
 		logrus.Error(err)
 	}
-	lssh.NewSSHService(p.host, config)
 }
 func UnmarshalConfig(scanner *bufio.Scanner) (auth api.ClientConfig, found bool) {
 	if scanner.Scan() {

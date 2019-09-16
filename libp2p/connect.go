@@ -36,15 +36,12 @@ func (p *P2PSSH) SSHConnect(pid peer.ID, clientConfig ssh.ClientConfig, reader i
 	}
 	logrus.Debug("Connection established peer:", pid)
 
-	clients := lssh.NewSSHClient(p.host, clientConfig)
+	clients := lssh.NewSSHClientWithConfig(p.host, clientConfig)
 	clients.Stdout = writer
 	clients.Stderr = writer
 	clients.Stdin = reader
 
-	ctx, cancel := context.WithCancel(context.Background())
-	clients.Connect(ctx, pid)
-	defer cancel()
-
+	clients.Connect(pid)
 	logrus.Debug("ssh stream close")
 	return nil
 }
