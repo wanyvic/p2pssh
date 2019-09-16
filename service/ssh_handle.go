@@ -18,8 +18,6 @@ func SSHandle(tcpConn *net.TCPConn, config api.ClientConfig) {
 	writer := io.Writer(tcpConn)
 	libp2p := p2p.GetLibp2p()
 
-	writer.Write([]byte(p2p.P2PSSHCONNECTED))
-
 	auth := make([]ssh.AuthMethod, 0)
 	if config.Password != "" {
 		auth = append(auth, ssh.Password(config.Password))

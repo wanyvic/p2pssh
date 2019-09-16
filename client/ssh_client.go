@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wanyvic/p2pssh/api"
@@ -33,19 +32,8 @@ func SSHandle(conn *net.TCPConn, config api.ClientConfig) {
 	header := []byte(fmt.Sprintf(p2p.P2PSSHCONNECT+"\n%s\n", string(auth)))
 	logrus.Debug("send --> ", string(header))
 	conn.Write(header)
-	buf := make([]byte, 1024)
-
-	n, err := r.Read(buf[:])
-	if err != nil || err == io.EOF {
-		logrus.Error(err)
-	}
-	logrus.Debug(string(buf[:n]))
-	if strings.Contains(string(buf[:n]), p2p.P2PSSHCONNECTED) {
-		conn.Write(header)
-		logrus.Debug("send --> ", string(header))
-		go io.Copy(w, os.Stdin)
-		convertColor(r)
-	}
+	go io.Copy(w, os.Stdin)
+	convertColor(r)
 	login.SetTerminalEcho(false)
 	logrus.Debug("SSHandle exit")
 }
