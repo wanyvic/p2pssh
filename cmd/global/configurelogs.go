@@ -3,10 +3,11 @@ package global
 import (
 	"fmt"
 
-	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 )
+
+const RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
 
 type rootOptions struct {
 	CfgFile  string
@@ -33,7 +34,7 @@ func ConfigureDaemonLogs(Opt *rootOptions) error {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
 	logrus.SetFormatter(&logrus.TextFormatter{
-		TimestampFormat: jsonmessage.RFC3339NanoFixed,
+		TimestampFormat: RFC3339NanoFixed,
 		DisableColors:   false,
 		FullTimestamp:   true,
 	})
